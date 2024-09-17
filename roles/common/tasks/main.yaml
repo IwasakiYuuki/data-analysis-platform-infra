@@ -1,0 +1,4 @@
+- name: "Setup Hadoop Cluster"
+  hosts: namenode
+  roles:
+    - java

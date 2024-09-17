@@ -1,0 +1,66 @@
+- name: Create Group
+  group:
+    name: hadoop
+    state: present
+
+- name: Create HDFS user
+  user:
+    name: hdfs
+    group: hadoop
+    state: present
+    shell: /bin/bash
+
+- name: Install ACL
+  apt:
+    name: acl
+    state: present
+
+- name: Copy Hadoop archive file
+  copy:
+    src: "{{ hadoop_archive }}"
+    dest: "/tmp/{{ hadoop_archive }}"
+    force: no
+
+- name: Unarchive the file
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ hadoop_archive }}"
+    dest: "/opt/"
+    creates: "/opt/{{ hadoop_directory }}"
+    remote_src: yes
+    group: hadoop
+
+- name: Create a log directory
+  file:
+    path: "/opt/{{ hadoop_directory }}/logs"
+    group: hadoop
+    mode: "0775"
+    state: "directory"
+
+- name: Create necessary directories
+  file:
+    path: "/opt/{{ hadoop_directory }}/{{ item }}"
+    group: hadoop
+    mode: "0775"
+    state: "directory"
+  loop:
+    - logs
+    - tmp
+
+- name: Create a symbolic link
+  file:
+    src: "/opt/{{ hadoop_directory }}"
+    dest: "/opt/hadoop"
+    state: "link"
+
+- name: Configure workers file to namenode
+  template:
+    src: workers.j2
+    dest: /opt/hadoop/etc/hadoop/workers
+
+- name: Copy setting files to hadoop dir
+  copy:
+    src: etc/hadoop/
+    dest: /opt/hadoop/etc/hadoop/
+    group: hadoop
+    mode: "0644"
+    directory_mode: "0755"

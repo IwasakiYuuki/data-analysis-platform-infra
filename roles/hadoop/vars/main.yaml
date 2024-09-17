@@ -1,0 +1,3 @@
+hadoop_version: "3.4.0"
+hadoop_archive: "hadoop-{{ hadoop_version }}.tar.gz"
+hadoop_directory: "hadoop-{{ hadoop_version }}"

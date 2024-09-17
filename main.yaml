@@ -1,0 +1,63 @@
+- name: Setup Hadoop Cluster
+  hosts: all
+  become: yes
+  roles:
+    - java
+    - hadoop
+
+- name: SSH key setting (namenode)
+  hosts: namenode
+  become: yes
+  vars:
+    hadoop_users:
+      - hdfs
+  tasks:
+    - name: Generate SSH key for hadoop users
+      user:
+        name: "{{ item }}"
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+      loop: "{{ hadoop_users }}"
+
+    - name: Fetch SSH public key from namenode
+      slurp:
+        src: "/home/{{ item }}/.ssh/id_rsa.pub"
+      register: slurped_keys
+      loop: "{{ hadoop_users }}"
+
+    - name: Set public keys fact
+      set_fact:
+        public_keys: "{{ public_keys | default({}) | combine({ item.item: (item.content | b64decode) }) }}"
+      loop: "{{ slurped_keys.results }}"
+
+- name: SSH key setting
+  hosts: all
+  become: yes
+  vars:
+    hadoop_users:
+      - hdfs
+  tasks:
+    - name: Copy SSH public keys to datanode
+      authorized_key:
+        user: "{{ item }}"
+        key: "{{ hostvars[groups['namenode'][0]].public_keys[item] }}"
+      loop: "{{ hadoop_users }}"
+
+- name: HDFS Format NameNode 
+  hosts: namenode
+  become: yes
+  become_user: hdfs
+  become_flags: "-i"
+  tasks:
+    - name: Format NameNode
+      command: /opt/hadoop/bin/hdfs namenode -format -force
+
+- name: HDFS Start
+  hosts: namenode
+  become: yes
+  become_user: hdfs
+  become_flags: "-i"
+  tasks:
+    - name: Start
+      command: /opt/hadoop/sbin/start-dfs.sh
