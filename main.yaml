@@ -43,21 +43,3 @@
         user: "{{ item }}"
         key: "{{ hostvars[groups['namenode'][0]].public_keys[item] }}"
       loop: "{{ hadoop_users }}"
-
-- name: HDFS Format NameNode 
-  hosts: namenode
-  become: yes
-  become_user: hdfs
-  become_flags: "-i"
-  tasks:
-    - name: Format NameNode
-      command: /opt/hadoop/bin/hdfs namenode -format -force
-
-- name: HDFS Start
-  hosts: namenode
-  become: yes
-  become_user: hdfs
-  become_flags: "-i"
-  tasks:
-    - name: Start
-      command: /opt/hadoop/sbin/start-dfs.sh

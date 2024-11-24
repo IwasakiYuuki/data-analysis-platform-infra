@@ -1,0 +1,41 @@
+hadoop_config:
+  core-site:
+    fs.defaultFS: "hdfs://{{ groups['namenode'][0] }}:9000"
+    hadoop.tmp.dir: /opt/hadoop/tmp
+    hadoop.security.authentication: kerberos
+    hadoop.security.authorization: true
+    hadoop.rpc.protection: authentication
+    hadoop.security.auth_to_local: |-
+      RULE:[2:$1/$2@$0]([ndj]n/.*@HOME)s/.*/hdfs/
+      RULE:[2:$1/$2@$0]([rn]m/.*@HOME)s/.*/yarn/
+      RULE:[2:$1/$2@$0](jhs/.*@HOME)s/.*/mapred/
+      DEFAULT
+
+  hdfs-site:
+    dfs.block.access.token.enable: true
+    dfs.namenode.kerberos.principal: nn/_HOST@HOME
+    dfs.namenode.keytab.file: /etc/security/keytab/nn.service.keytab
+    dfs.namenode.kerberos.internal.spnego.principal: HTTP/_HOST@HOME
+    dfs.web.authentication.kerberos.keytab: /etc/security/keytab/spnego.service.keytab
+    dfs.http.policy: HTTPS_ONLY
+    dfs.data.transfer.protection: authentication
+    dfs.datanode.data.dir.perm: 700
+    dfs.datanode.kerberos.principal: dn/_HOST@HOME
+    dfs.datanode.keytab.file: /etc/security/keytab/dn.service.keytab
+    dfs.datanode.address: 0.0.0.0:9874
+    dfs.datanode.http.address: 0.0.0.0:9876
+
+  ssl-server:
+    ssl.server.truststore.location: /etc/ssl/hadoop/truststore.jks
+    ssl.server.truststore.type: jks
+    ssl.server.truststore.reload.interval: 10000
+    ssl.server.keystore.location: /etc/ssl/hadoop/keystore.jks
+    ssl.server.keystore.type: jks
+    ssl.server.exclude.cipher.list: |-
+      TLS_ECDHE_RSA_WITH_RC4_128_SHA,SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,
+      SSL_RSA_WITH_DES_CBC_SHA,SSL_DHE_RSA_WITH_DES_CBC_SHA,
+      SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,
+      SSL_RSA_WITH_RC4_128_MD5
+    ssl.server.truststore.password: "storepassword"
+    ssl.server.keystore.password: "storepassword"
+    ssl.server.keystore.keypassword: "keypassword"

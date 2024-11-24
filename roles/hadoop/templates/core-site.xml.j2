@@ -14,15 +14,11 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-<!-- Put site-specific property overrides in this file. -->
-
 <configuration>
+{% for key, value in hadoop_config['core-site'].items() %}
   <property>
-    <name>fs.defaultFS</name>
-    <value>hdfs://192.168.1.100:9000</value>
+    <name>{{ key }}</name>
+    <value>{{ value }}</value>
   </property>
-  <property>
-    <name>hadoop.tmp.dir</name>
-    <value>/opt/hadoop/tmp</value>
-  </property>
+{% endfor %}
 </configuration>

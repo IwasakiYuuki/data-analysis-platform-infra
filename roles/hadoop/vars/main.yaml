@@ -1,3 +1,7 @@
 hadoop_version: "3.4.0"
 hadoop_archive: "hadoop-{{ hadoop_version }}.tar.gz"
 hadoop_directory: "hadoop-{{ hadoop_version }}"
+
+format_hdfs: false
+start_hdfs: false
+stop_hdfs: false

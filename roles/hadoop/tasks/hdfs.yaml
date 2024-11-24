@@ -1,0 +1,44 @@
+- name: Create HDFS user
+  user:
+    name: hdfs
+    group: hadoop
+    state: present
+    shell: /bin/bash
+
+- name: Create a Keytab dir
+  file:
+    path: /etc/security/keytab
+    state: "directory"
+
+- name: Copy keytab files
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/security/keytab/{{ item }}"
+    owner: hdfs
+    group: hadoop
+    mode: "0600"
+  loop:
+    - "nn.service.keytab"
+    - "sn.service.keytab"
+    - "dn.service.keytab"
+    - "spnego.service.keytab"
+
+- name: Create necessary directories
+  file:
+    path: "/opt/{{ hadoop_directory }}/{{ item }}"
+    owner: hdfs
+    group: hadoop
+    mode: "0775"
+    state: "directory"
+  loop:
+    - logs
+
+- name: Copy setting files to hadoop dir
+  template:
+    src: hdfs-site.xml.j2
+    dest: /opt/hadoop/etc/hadoop/hdfs-site.xml
+    group: hadoop
+    mode: "0644"
+    directory_mode: "0755"
+  notify:
+    - HDFS Start

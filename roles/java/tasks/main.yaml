@@ -23,3 +23,5 @@
     src: jdk.sh.j2
     dest: /etc/profile.d/jdk.sh
     mode: '0755'
+  notify:
+    - Reload environment variables

@@ -1,0 +1,5 @@
+[namenode]
+hadoop-namenode1.home
+
+[datanode]
+hadoop-datanode1.home

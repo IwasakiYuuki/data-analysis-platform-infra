@@ -1,0 +1,96 @@
+- name: Create Group
+  group:
+    name: hadoop
+    state: present
+
+- name: Install ACL
+  apt:
+    name: acl
+    state: present
+
+- name: Copy Hadoop archive file
+  copy:
+    src: "{{ hadoop_archive }}"
+    dest: "/tmp/{{ hadoop_archive }}"
+    force: no
+
+- name: Set HADOOP_HOME environment variable
+  copy:
+    src: hadoop.sh
+    dest: /etc/profile.d/hadoop.sh
+    mode: '0755'
+
+- name: Unarchive the file
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ hadoop_archive }}"
+    dest: "/opt/"
+    creates: "/opt/{{ hadoop_directory }}"
+    remote_src: yes
+    group: hadoop
+
+- name: Create a log directory
+  file:
+    path: "/opt/{{ hadoop_directory }}/logs"
+    group: hadoop
+    mode: "0775"
+    state: "directory"
+
+- name: Create necessary directories
+  file:
+    path: "/opt/{{ hadoop_directory }}/{{ item }}"
+    group: hadoop
+    mode: "0775"
+    state: "directory"
+  loop:
+    - tmp
+
+- name: Create a symbolic link
+  file:
+    src: "/opt/{{ hadoop_directory }}"
+    dest: "/opt/hadoop"
+    state: "link"
+
+- name: Create a Hadoop SSL dir
+  file:
+    path: /etc/ssl/hadoop
+    state: "directory"
+
+- name: Copy SSL credentials
+  copy:
+    src: "{{ item }}"
+    dest: /etc/ssl/hadoop
+    group: hadoop
+    mode: "0644"
+  loop:
+    - "keystore.jks"
+    - "truststore.jks"
+
+- name: Create a Keytab dir
+  file:
+    path: /etc/security/keytab
+    state: "directory"
+
+- name: Copy keytab files
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/security/keytab/{{ item }}"
+    group: hadoop
+    mode: "0644"
+  loop:
+    - "nn.service.keytab"
+    - "sn.service.keytab"
+    - "dn.service.keytab"
+    - "spnego.service.keytab"
+
+- name: Copy setting files to hadoop dir
+  template:
+    src: "{{ item }}.j2"
+    dest: "/opt/hadoop/etc/hadoop/{{ item }}"
+    group: hadoop
+    mode: "0644"
+  loop:
+    - core-site.xml
+    - ssl-server.xml
+    - workers
+  notify:
+    - HDFS Start
