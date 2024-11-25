@@ -11,6 +11,7 @@
   vars:
     hadoop_users:
       - hdfs
+      - yarn
   tasks:
     - name: Generate SSH key for hadoop users
       user:
@@ -37,6 +38,7 @@
   vars:
     hadoop_users:
       - hdfs
+      - yarn
   tasks:
     - name: Copy SSH public keys to datanode
       authorized_key:

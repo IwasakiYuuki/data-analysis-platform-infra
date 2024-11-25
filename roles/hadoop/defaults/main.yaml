@@ -39,3 +39,16 @@ hadoop_config:
     ssl.server.truststore.password: "storepassword"
     ssl.server.keystore.password: "storepassword"
     ssl.server.keystore.keypassword: "keypassword"
+
+  yarn-site:
+    yarn.resourcemanager.hostname: "{{ groups['namenode'][0] }}"
+    yarn.http.policy: HTTPS_ONLY
+    yarn.resourcemanager.webapp.https.address: hadoop-namenode1.home:8090
+    yarn.resourcemanager.principal: rm/_HOST@HOME
+    yarn.resourcemanager.keytab: /etc/security/keytab/rm.service.keytab
+    yarn.nodemanager.principal: nm/_HOST@HOME
+    yarn.nodemanager.keytab: /etc/security/keytab/nm.service.keytab
+    yarn.nodemanager.container-executor.class: org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor	
+    yarn.nodemanager.linux-container-executor.group: hadoop
+    yarn.nodemanager.linux-container-executor.path: /opt/hadoop/bin/container-executor
+    yarn.nodemanager.webapp.https.address: 0.0.0.0:8044

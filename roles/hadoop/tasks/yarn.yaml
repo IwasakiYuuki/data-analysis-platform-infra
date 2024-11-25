@@ -1,0 +1,76 @@
+- name: Create HDFS user
+  user:
+    name: yarn
+    group: hadoop
+    state: present
+    shell: /bin/bash
+
+- name: Create a Keytab dir
+  file:
+    path: /etc/security/keytab
+    state: "directory"
+
+- name: Copy keytab files
+  copy:
+    src: "keytab/{{ item }}"
+    dest: "/etc/security/keytab/{{ item }}"
+    owner: yarn
+    group: hadoop
+    mode: "0600"
+  loop:
+    - "rm.service.keytab"
+    - "nm.service.keytab"
+
+- name: Copy setting files to hadoop dir
+  template:
+    src: yarn-site.xml.j2
+    dest: /opt/hadoop/etc/hadoop/yarn-site.xml
+    group: hadoop
+    mode: "0644"
+    directory_mode: "0755"
+
+- name: Copy container-executor config file
+  copy:
+    src: "container-executor.cfg"
+    dest: "/opt/hadoop/etc/hadoop/container-executor.cfg"
+    group: hadoop
+    mode: "0644"
+
+- name: Change permission of container-executor binary
+  file:
+    path: /opt/hadoop/bin/container-executor
+    mode: "4750"
+
+# Downgrade OpenSSL to 1.1.1 for Linux Container Executor
+# (Default in many case is more than 3.0)
+- name: Install dependencies for OpenSSL build
+  apt:
+    name:
+      - build-essential
+      - checkinstall
+      - zlib1g-dev
+    state: present
+
+- name: Extract OpenSSL 1.1 source
+  unarchive:
+    src: "openssl-1.1.1.tar.gz"
+    dest: /tmp
+    remote_src: false
+
+- name: Build and install OpenSSL 1.1
+  shell: |
+    ./config
+    make
+    make install
+  args:
+    chdir: /tmp/openssl-1.1.1
+
+- name: Ensure OpenSSL 1.1 is the default version
+  shell: |
+    update-alternatives --install /usr/bin/openssl openssl /usr/local/bin/openssl 100
+    update-alternatives --set openssl /usr/local/bin/openssl
+
+- name: Remove source directory
+  file:
+    path: /tmp/openssl-1.1.1
+    state: absent

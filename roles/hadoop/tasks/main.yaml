@@ -3,3 +3,6 @@
 
 - name: hdfs tasks
   include_tasks: ./hdfs.yaml
+
+- name: yarn tasks
+  include_tasks: ./yarn.yaml

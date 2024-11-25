@@ -12,7 +12,7 @@
 
 - name: Copy keytab files
   copy:
-    src: "{{ item }}"
+    src: "keytab/{{ item }}"
     dest: "/etc/security/keytab/{{ item }}"
     owner: hdfs
     group: hadoop

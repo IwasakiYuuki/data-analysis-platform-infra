@@ -2,8 +2,13 @@
 Construct on-premises Hadoop cluster using ansible
 
 
-## Memo (for now)
+## Memo
 
-Before execute ansible playbook, need to do the following
+requirements:
 
-1. NameNode/Datanode SSH setting
+1. Put files
+  1. JDK binary file
+  2. Hadoop binary file
+  3. Keytab files
+  4. JKS files (Server SSL credential)
+  5. OpenSSL1.1.1 source file
