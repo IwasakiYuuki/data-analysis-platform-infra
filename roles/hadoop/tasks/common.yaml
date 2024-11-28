@@ -28,6 +28,11 @@
     remote_src: yes
     group: hadoop
 
+- name: Remove unarchive file
+  file:
+    path: /tmp/{{ hadoop_archive }}
+    state: absent
+
 - name: Create a log directory
   file:
     path: "/opt/{{ hadoop_directory }}/logs"

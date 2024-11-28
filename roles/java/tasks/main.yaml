@@ -11,6 +11,11 @@
     creates: "/opt/{{ jdk_directory }}"
     remote_src: yes
 
+- name: Remove unarchive file
+  file:
+    path: /tmp/{{ jdk_archive }}
+    state: absent
+
 - name: Set Java 8 as the default
   alternatives:
     name: java

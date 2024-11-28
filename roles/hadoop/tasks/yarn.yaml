@@ -43,34 +43,47 @@
 
 # Downgrade OpenSSL to 1.1.1 for Linux Container Executor
 # (Default in many case is more than 3.0)
-- name: Install dependencies for OpenSSL build
-  apt:
-    name:
-      - build-essential
-      - checkinstall
-      - zlib1g-dev
-    state: present
 
-- name: Extract OpenSSL 1.1 source
-  unarchive:
-    src: "openssl-1.1.1.tar.gz"
-    dest: /tmp
-    remote_src: false
+- name: Check currently installed OpenSSL version
+  command: openssl version
+  register: openssl_version_output
+  failed_when: false
+  changed_when: false
 
-- name: Build and install OpenSSL 1.1
-  shell: |
-    ./config
-    make
-    make install
-  args:
-    chdir: /tmp/openssl-1.1.1
+- name: Downgrade OpenSSL to 1.1
+  when: "'OpenSSL 1.1' not in openssl_version_output.stdout" 
+  block:
+  - name: Install dependencies for OpenSSL build
+    apt:
+      name:
+        - build-essential
+        - checkinstall
+        - zlib1g-dev
+      state: present
 
-- name: Ensure OpenSSL 1.1 is the default version
-  shell: |
-    update-alternatives --install /usr/bin/openssl openssl /usr/local/bin/openssl 100
-    update-alternatives --set openssl /usr/local/bin/openssl
+  - name: Extract OpenSSL 1.1 source
+    unarchive:
+      src: "openssl-1.1.1.tar.gz"
+      dest: /tmp
+      remote_src: false
 
-- name: Remove source directory
-  file:
-    path: /tmp/openssl-1.1.1
-    state: absent
+  - name: Build and install OpenSSL 1.1
+    shell: |
+      ./config
+      make
+      make install
+    args:
+      chdir: /tmp/openssl-1.1.1
+
+  - name: Reload shared library cache
+    command: ldconfig
+
+  - name: Ensure OpenSSL 1.1 is the default version
+    shell: |
+      update-alternatives --install /usr/bin/openssl openssl /usr/local/bin/openssl 100
+      update-alternatives --set openssl /usr/local/bin/openssl
+
+  - name: Remove source directory
+    file:
+      path: /tmp/openssl-1.1.1
+      state: absent
