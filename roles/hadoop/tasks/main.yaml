@@ -6,3 +6,6 @@
 
 - name: yarn tasks
   include_tasks: ./yarn.yaml
+
+- name: mapred tasks
+  include_tasks: ./mapred.yaml

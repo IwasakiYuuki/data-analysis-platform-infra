@@ -1,0 +1,27 @@
+- name: Create MapReduce user
+  user:
+    name: mapred
+    group: hadoop
+    state: present
+    shell: /bin/bash
+
+- name: Create a Keytab dir
+  file:
+    path: /etc/security/keytab
+    state: "directory"
+
+- name: Copy keytab files
+  copy:
+    src: keytab/jhs.service.keytab
+    dest: /etc/security/keytab/jhs.service.keytab
+    owner: mapred
+    group: hadoop
+    mode: "0600"
+
+- name: Copy setting files to hadoop dir
+  template:
+    src: mapred-site.xml.j2
+    dest: /opt/hadoop/etc/hadoop/mapred-site.xml
+    group: hadoop
+    mode: "0644"
+    directory_mode: "0755"

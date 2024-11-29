@@ -52,3 +52,8 @@ hadoop_config:
     yarn.nodemanager.linux-container-executor.group: hadoop
     yarn.nodemanager.linux-container-executor.path: /opt/hadoop/bin/container-executor
     yarn.nodemanager.webapp.https.address: 0.0.0.0:8044
+
+  mapred-site:
+    mapreduce.framework.name: yarn
+    mapreduce.jobhistory.keytab: /etc/security/keytab/jhs.service.keytab
+    mapreduce.jobhistory.principal: jhs/_HOST@HOME
