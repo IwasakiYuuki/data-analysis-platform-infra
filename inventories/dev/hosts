@@ -1,0 +1,5 @@
+[namenode]
+hadoop-namenode1.home ansible_connection=docker
+
+[datanode]
+hadoop-datanode1.home ansible_connection=docker

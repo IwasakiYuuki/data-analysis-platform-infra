@@ -15,11 +15,40 @@
 -->
 
 <configuration>
-{% for key, value in hadoop_config['ssl-server'].items() %}
   <property>
-    <name>{{ key }}</name>
-    <value>{{ value }}</value>
+    <name>ssl.server.truststore.location</name>
+    <value>{{ ssl_server_truststore_location }}</value>
   </property>
-{% endfor %}
+  <property>
+    <name>ssl.server.truststore.type</name>
+    <value>{{ ssl_server_truststore_type }}</value>
+  </property>
+  <property>
+    <name>ssl.server.truststore.reload.interval</name>
+    <value>{{ ssl_server_truststore_reload_interval }}</value>
+  </property>
+  <property>
+    <name>ssl.server.keystore.location</name>
+    <value>{{ ssl_server_keystore_location }}</value>
+  </property>
+  <property>
+    <name>ssl.server.keystore.type</name>
+    <value>{{ ssl_server_keystore_type }}</value>
+  </property>
+  <property>
+    <name>ssl.server.exclude.cipher.list</name>
+    <value>{{ ssl_server_exclude_cipher_list }}</value>
+  </property>
+  <property>
+    <name>ssl.server.truststore.password</name>
+    <value>{{ ssl_server_truststore_password }}</value>
+  </property>
+  <property>
+    <name>ssl.server.keystore.password</name>
+    <value>{{ ssl_server_keystore_password }}</value>
+  </property>
+  <property>
+    <name>ssl.server.keystore.keypassword</name>
+    <value>{{ ssl_server_keystore_keypassword }}</value>
+  </property>
 </configuration>
-

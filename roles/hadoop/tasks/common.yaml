@@ -1,59 +1,90 @@
-- name: Create Group
-  group:
-    name: hadoop
-    state: present
+- name: Set secure mode
+  set_fact:
+    secure_mode: "{{ hadoop_security_authentication == 'kerberos' }}"
 
-- name: Install ACL
+- name: Install dependencies
   apt:
     name: acl
     state: present
 
-- name: Copy Hadoop archive file
-  copy:
-    src: "{{ hadoop_archive }}"
-    dest: "/tmp/{{ hadoop_archive }}"
-    force: no
+- name: Create Hadoop Group
+  group:
+    name: hadoop
+    state: present
 
-- name: Set HADOOP_HOME environment variable
-  copy:
-    src: hadoop.sh
-    dest: /etc/profile.d/hadoop.sh
-    mode: '0755'
+- name: Check if Hadoop directory exists
+  ansible.builtin.stat:
+    path: /opt/hadoop
+  register: hadoop_dir
+
+- name: Download Hadoop archive file
+  get_url:
+    url: "{{ hadoop_url }}"
+    dest: "/tmp/{{ hadoop_archive }}"
+    timeout: 300
+  when: not hadoop_dir.stat.exists
 
 - name: Unarchive the file
   ansible.builtin.unarchive:
     src: "/tmp/{{ hadoop_archive }}"
-    dest: "/opt/"
-    creates: "/opt/{{ hadoop_directory }}"
+    dest: "/opt"
+    creates: "/opt/{{ hadoop_archive | replace('.tar.gz', '') }}"
     remote_src: yes
     group: hadoop
+  when: not hadoop_dir.stat.exists
+
+- name: Create a symbolic link
+  file:
+    src: "/opt/{{ hadoop_archive | replace('.tar.gz', '') }}"
+    dest: "/opt/hadoop"
+    state: "link"
+  when: not hadoop_dir.stat.exists
 
 - name: Remove unarchive file
   file:
     path: /tmp/{{ hadoop_archive }}
     state: absent
+  when: not hadoop_dir.stat.exists
 
-- name: Create a log directory
+- name: Create a necessary directories
   file:
-    path: "/opt/{{ hadoop_directory }}/logs"
-    group: hadoop
-    mode: "0775"
-    state: "directory"
-
-- name: Create necessary directories
-  file:
-    path: "/opt/{{ hadoop_directory }}/{{ item }}"
+    path: "/opt/hadoop/{{ item }}"
     group: hadoop
     mode: "0775"
     state: "directory"
   loop:
+    - logs
     - tmp
 
-- name: Create a symbolic link
-  file:
-    src: "/opt/{{ hadoop_directory }}"
-    dest: "/opt/hadoop"
-    state: "link"
+- name: Copy setting files to hadoop dir
+  template:
+    src: "{{ item }}.j2"
+    dest: "/opt/hadoop/etc/hadoop/{{ item }}"
+    group: hadoop
+    mode: "0644"
+  loop:
+    - hadoop-env.sh
+    - core-site.xml
+    - workers
+
+# In secure mode
+- name: Install Kerberos
+  apt:
+    name: krb5-user
+    state: present
+
+- name: Add Realm to Kerberos
+  lineinfile:
+    path: /etc/krb5.conf
+    insertafter: "^\\[realms\\]"
+    line: "{{ krb_realm_config }}"
+
+- name: Change default_realm
+  ansible.builtin.lineinfile:
+    path: /etc/krb5.conf
+    regexp: "^(\\s*)default_realm\\s*="
+    line: "\\1default_realm = {{ krb_default_realm }}"
+    backrefs: yes
 
 - name: Create a Hadoop SSL dir
   file:
@@ -70,15 +101,16 @@
     - "keystore.jks"
     - "truststore.jks"
 
-- name: Copy setting files to hadoop dir
+- name: Copy setting files to hadoop dir (Secure mode)
   template:
     src: "{{ item }}.j2"
     dest: "/opt/hadoop/etc/hadoop/{{ item }}"
     group: hadoop
     mode: "0644"
   loop:
-    - core-site.xml
     - ssl-server.xml
-    - workers
-  notify:
-    - HDFS Start
+
+- name: Create a Keytab dir
+  file:
+    path: /etc/security/keytab
+    state: "directory"

@@ -1,59 +1,76 @@
-hadoop_config:
-  core-site:
-    fs.defaultFS: "hdfs://{{ groups['namenode'][0] }}:9000"
-    hadoop.tmp.dir: /opt/hadoop/tmp
-    hadoop.security.authentication: kerberos
-    hadoop.security.authorization: true
-    hadoop.rpc.protection: authentication
-    hadoop.security.auth_to_local: |-
-      RULE:[2:$1/$2@$0]([ndj]n/.*@HOME)s/.*/hdfs/
-      RULE:[2:$1/$2@$0]([rn]m/.*@HOME)s/.*/yarn/
-      RULE:[2:$1/$2@$0](jhs/.*@HOME)s/.*/mapred/
-      DEFAULT
+hadoop_version: "3.4.0"
+hadoop_archive: "hadoop-{{ hadoop_version }}.tar.gz"
+hadoop_url_prefix: "https://dlcdn.apache.org/hadoop/common"
+hadoop_url: "{{ hadoop_url_prefix }}/hadoop-{{ hadoop_version }}/{{ hadoop_archive }}"
 
-  hdfs-site:
-    dfs.block.access.token.enable: true
-    dfs.namenode.kerberos.principal: nn/_HOST@HOME
-    dfs.namenode.keytab.file: /etc/security/keytab/nn.service.keytab
-    dfs.namenode.kerberos.internal.spnego.principal: HTTP/_HOST@HOME
-    dfs.web.authentication.kerberos.keytab: /etc/security/keytab/spnego.service.keytab
-    dfs.http.policy: HTTPS_ONLY
-    dfs.data.transfer.protection: authentication
-    dfs.datanode.data.dir.perm: 700
-    dfs.datanode.kerberos.principal: dn/_HOST@HOME
-    dfs.datanode.keytab.file: /etc/security/keytab/dn.service.keytab
-    dfs.datanode.address: 0.0.0.0:9874
-    dfs.datanode.http.address: 0.0.0.0:9876
+krb_default_realm: HOME
+krb_realm_config: |
+  HOME = {
+    kdc = kdc.home
+    admin_server = kdc.home
+  }
 
-  ssl-server:
-    ssl.server.truststore.location: /etc/ssl/hadoop/truststore.jks
-    ssl.server.truststore.type: jks
-    ssl.server.truststore.reload.interval: 10000
-    ssl.server.keystore.location: /etc/ssl/hadoop/keystore.jks
-    ssl.server.keystore.type: jks
-    ssl.server.exclude.cipher.list: |-
-      TLS_ECDHE_RSA_WITH_RC4_128_SHA,SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,
-      SSL_RSA_WITH_DES_CBC_SHA,SSL_DHE_RSA_WITH_DES_CBC_SHA,
-      SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,
-      SSL_RSA_WITH_RC4_128_MD5
-    ssl.server.truststore.password: "storepassword"
-    ssl.server.keystore.password: "storepassword"
-    ssl.server.keystore.keypassword: "keypassword"
+# Setting file (etc/hadoop/*)
+# core-site.xml
+fs_defaultFS: "hdfs://{{ groups['namenode'][0] }}:9000"
+hadoop_tmp_dir: /opt/hadoop/tmp
+hadoop_security_authentication: kerberos
+hadoop_security_authorization: true
+hadoop_rpc_protection: authentication
+hadoop_security_auth_to_local: |-
+  RULE:[2:$1/$2@$0]([ndj]n/.*@HOME)s/.*/hdfs/
+  RULE:[2:$1/$2@$0]([rn]m/.*@HOME)s/.*/yarn/
+  RULE:[2:$1/$2@$0](jhs/.*@HOME)s/.*/mapred/
+  DEFAULT
 
-  yarn-site:
-    yarn.resourcemanager.hostname: "{{ groups['namenode'][0] }}"
-    yarn.http.policy: HTTPS_ONLY
-    yarn.resourcemanager.webapp.https.address: hadoop-namenode1.home:8090
-    yarn.resourcemanager.principal: rm/_HOST@HOME
-    yarn.resourcemanager.keytab: /etc/security/keytab/rm.service.keytab
-    yarn.nodemanager.principal: nm/_HOST@HOME
-    yarn.nodemanager.keytab: /etc/security/keytab/nm.service.keytab
-    yarn.nodemanager.container-executor.class: org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor	
-    yarn.nodemanager.linux-container-executor.group: hadoop
-    yarn.nodemanager.linux-container-executor.path: /opt/hadoop/bin/container-executor
-    yarn.nodemanager.webapp.https.address: 0.0.0.0:8044
+# ssl-server.xml
+ssl_server_truststore_location: /etc/ssl/hadoop/truststore.jks
+ssl_server_truststore_type: jks
+ssl_server_truststore_reload_interval: 10000
+ssl_server_keystore_location: /etc/ssl/hadoop/keystore.jks
+ssl_server_keystore_type: jks
+ssl_server_exclude_cipher_list: |-
+  TLS_ECDHE_RSA_WITH_RC4_128_SHA,SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,
+  SSL_RSA_WITH_DES_CBC_SHA,SSL_DHE_RSA_WITH_DES_CBC_SHA,
+  SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,
+  SSL_RSA_WITH_RC4_128_MD5
+ssl_server_truststore_password: "storepassword"
+ssl_server_keystore_password: "storepassword"
+ssl_server_keystore_keypassword: "keypassword"
 
-  mapred-site:
-    mapreduce.framework.name: yarn
-    mapreduce.jobhistory.keytab: /etc/security/keytab/jhs.service.keytab
-    mapreduce.jobhistory.principal: jhs/_HOST@HOME
+# hdfs-site.xml
+dfs_block_access_token_enable: true
+dfs_namenode_kerberos_principal: nn/_HOST@HOME
+dfs_namenode_keytab_file: /etc/security/keytab/nn.service.keytab
+dfs_namenode_kerberos_internal_spnego_principal: HTTP/_HOST@HOME
+dfs_web_authentication_kerberos_keytab: /etc/security/keytab/spnego.service.keytab
+dfs_http_policy: HTTPS_ONLY
+dfs_data_transfer_protection: authentication
+dfs_datanode_data_dir_perm: 700
+dfs_datanode_kerberos_principal: dn/_HOST@HOME
+dfs_datanode_keytab_file: /etc/security/keytab/dn.service.keytab
+dfs_datanode_address: 0.0.0.0:9874
+dfs_datanode_http_address: 0.0.0.0:9876
+
+# yarn-site.xml
+yarn_resourcemanager_hostname: "{{ groups['namenode'][0] }}"
+yarn_http_policy: HTTPS_ONLY
+yarn_resourcemanager_webapp_https_address: "{{ groups['namenode'][0] }}:8090"
+yarn_resourcemanager_principal: rm/_HOST@HOME
+yarn_resourcemanager_keytab: /etc/security/keytab/rm.service.keytab
+yarn_nodemanager_principal: nm/_HOST@HOME
+yarn_nodemanager_keytab: /etc/security/keytab/nm.service.keytab
+yarn_nodemanager_container_executor_class: org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor	
+yarn_nodemanager_linux_container_executor_group: hadoop
+yarn_nodemanager_linux_container_executor_path: /opt/hadoop/bin/container-executor
+yarn_nodemanager_webapp_https_address: 0.0.0.0:8044
+yarn_nodemanager_aux_services: mapreduce_shuffle
+yarn_nodemanager_aux_services_mapreduce_shuffle_class: org.apache.hadoop.mapred.ShuffleHandler
+
+# mapred-site.xml
+mapreduce_framework_name: yarn
+mapreduce_jobhistory_keytab: /etc/security/keytab/jhs.service.keytab
+mapreduce_jobhistory_principal: jhs/_HOST@HOME
+yarn_app_mapreduce_am_env: HADOOP_MAPRED_HOME=/opt/hadoop
+mapreduce_map_env: HADOOP_MAPRED_HOME=/opt/hadoop
+mapreduce_reduce_env: HADOOP_MAPRED_HOME=/opt/hadoop

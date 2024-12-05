@@ -1,32 +1,23 @@
-- name: Copy Java 8 to the server
-  copy:
-    src: "{{ jdk_archive }}"
+# Download and install JDK 8 for Hadoop
+# Set this JAVA_HOME later in Hadoop enviroment config file (hadoop-env.sh)
+
+- name: Download JDK archive file
+  get_url:
+    url: "{{ jdk_url }}"
     dest: "/tmp/{{ jdk_archive }}"
-    force: no
 
 - name: Unarchive the file
   ansible.builtin.unarchive:
     src: "/tmp/{{ jdk_archive }}"
     dest: "/opt/"
-    creates: "/opt/{{ jdk_directory }}"
+    creates: "/opt/{{ jdk_archive | replace('.tar.gz', '') }}"
     remote_src: yes
 
-- name: Remove unarchive file
+- name: Set JAVA_HOME fact
+  set_fact:
+    java_home: "/opt/{{ jdk_archive | replace('.tar.gz', '') }}"
+
+- name: Rmove unarchive file
   file:
-    path: /tmp/{{ jdk_archive }}
+    path: "/tmp/{{ jdk_archive }}"
     state: absent
-
-- name: Set Java 8 as the default
-  alternatives:
-    name: java
-    link: "/usr/bin/java"
-    path: "/opt/{{ jdk_directory }}/bin/java"
-    priority: 1000
-
-- name: Set JAVA_HOME environment variable
-  template:
-    src: jdk.sh.j2
-    dest: /etc/profile.d/jdk.sh
-    mode: '0755'
-  notify:
-    - Reload environment variables

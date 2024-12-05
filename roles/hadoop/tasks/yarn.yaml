@@ -1,14 +1,9 @@
-- name: Create HDFS user
+- name: Create Yarn user
   user:
     name: yarn
     group: hadoop
     state: present
     shell: /bin/bash
-
-- name: Create a Keytab dir
-  file:
-    path: /etc/security/keytab
-    state: "directory"
 
 - name: Copy keytab files
   copy:
@@ -23,18 +18,14 @@
 
 - name: Copy setting files to hadoop dir
   template:
-    src: yarn-site.xml.j2
-    dest: /opt/hadoop/etc/hadoop/yarn-site.xml
+    src: "{{ item }}.j2"
+    dest: "/opt/hadoop/etc/hadoop/{{ item }}"
     group: hadoop
     mode: "0644"
     directory_mode: "0755"
-
-- name: Copy container-executor config file
-  copy:
-    src: "container-executor.cfg"
-    dest: "/opt/hadoop/etc/hadoop/container-executor.cfg"
-    group: hadoop
-    mode: "0644"
+  loop:
+    - yarn-site.xml
+    - container-executor.cfg
 
 - name: Change permission of container-executor binary
   file:
@@ -61,11 +52,22 @@
         - zlib1g-dev
       state: present
 
-  - name: Extract OpenSSL 1.1 source
-    unarchive:
-      src: "openssl-1.1.1.tar.gz"
+  - name: Download OpenSSL 1.1.1 archive file
+    get_url:
+      url: https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1/openssl-1.1.1.tar.gz
       dest: /tmp
-      remote_src: false
+      timeout: 300
+
+  - name: Unarchive the file
+    ansible.builtin.unarchive:
+      src: /tmp/openssl-1.1.1.tar.gz
+      dest: /tmp
+      remote_src: yes
+
+  - name: Remove archive file
+    file:
+      path: /tmp/openssl-1.1.1.tar.gz
+      state: absent
 
   - name: Build and install OpenSSL 1.1
     shell: |
@@ -78,10 +80,12 @@
   - name: Reload shared library cache
     command: ldconfig
 
-  - name: Ensure OpenSSL 1.1 is the default version
-    shell: |
-      update-alternatives --install /usr/bin/openssl openssl /usr/local/bin/openssl 100
-      update-alternatives --set openssl /usr/local/bin/openssl
+  - name: Set OpenSSL 1.1.1 as the default
+    alternatives:
+      name: openssl
+      link: /usr/bin/openssl
+      path: /usr/local/bin/openssl
+      priority: 100
 
   - name: Remove source directory
     file:

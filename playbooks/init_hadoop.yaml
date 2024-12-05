@@ -1,0 +1,58 @@
+- name: init HDFS directories
+  hosts: "{{ groups['namenode'][0] }}"
+  become: yes
+  become_user: hdfs
+  vars:
+    keytab: /etc/security/keytab/nn.service.keytab
+    principal: "nn/hadoop-namenode1.home@HOME"
+  tasks:
+    - name: Authenticated Kerberos
+      shell: kinit -kt {{ keytab }} {{ principal }}
+
+    - name: HDFS /
+      shell: |
+        bin/hdfs dfs -chmod 0755 /
+        bin/hdfs dfs -chown hdfs:hadoop /
+      args:
+        chdir: /opt/hadoop
+
+    - name: HDFS /tmp
+      shell: |
+        bin/hdfs dfs -mkdir /tmp
+        bin/hdfs dfs -chmod 1777 /tmp
+        bin/hdfs dfs -chown hdfs:hadoop /tmp
+      args:
+        chdir: /opt/hadoop
+
+    - name: HDFS /user
+      shell: |
+        bin/hdfs dfs -mkdir /user
+        bin/hdfs dfs -chmod 0755 /user
+        bin/hdfs dfs -chown hdfs:hadoop /user
+      args:
+        chdir: /opt/hadoop
+
+    - name: HDFS yarn.nodemanager.remote-app-log-dir
+      shell: |
+        bin/hdfs dfs -mkdir /tmp/logs
+        bin/hdfs dfs -chmod 1777 /tmp/logs
+        bin/hdfs dfs -chown yarn:hadoop /tmp/logs
+      args:
+        chdir: /opt/hadoop
+
+    - name: HDFS mapreduce.jobhistory.intermediate-done-dir
+      shell: |
+        bin/hdfs dfs -mkdir -p /tmp/hadoop-yarn/staging/history/done_intermediate
+        bin/hdfs dfs -chmod -R 1777 /tmp/hadoop-yarn
+        bin/hdfs dfs -chown -R yarn:hadoop /tmp/hadoop-yarn
+        bin/hdfs dfs -chown mapred:hadoop /tmp/hadoop-yarn/staging/history/done_intermediate
+      args:
+        chdir: /opt/hadoop
+
+    - name: HDFS mapreduce.jobhistory.done-dir
+      shell: |
+        bin/hdfs dfs -mkdir /tmp/hadoop-yarn/staging/history/done
+        bin/hdfs dfs -chmod 0750 /tmp/hadoop-yarn/staging/history/done
+        bin/hdfs dfs -chown mapred:hadoop /tmp/hadoop-yarn/staging/history/done
+      args:
+        chdir: /opt/hadoop

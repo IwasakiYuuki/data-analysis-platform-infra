@@ -15,10 +15,28 @@
 -->
 
 <configuration>
-{% for key, value in hadoop_config['core-site'].items() %}
   <property>
-    <name>{{ key }}</name>
-    <value>{{ value }}</value>
+    <name>fs.defaultFS</name>
+    <value>{{ fs_defaultFS }}</value>
   </property>
-{% endfor %}
+  <property>
+    <name>hadoop.tmp.dir</name>
+    <value>{{ hadoop_tmp_dir }}</value>
+  </property>
+  <property>
+    <name>hadoop.security.authentication</name>
+    <value>{{ hadoop_security_authentication }}</value>
+  </property>
+  <property>
+    <name>hadoop.security.authorization</name>
+    <value>{{ hadoop_security_authorization }}</value>
+  </property>
+  <property>
+    <name>hadoop.rpc.protection</name>
+    <value>{{ hadoop_rpc_protection }}</value>
+  </property>
+  <property>
+    <name>hadoop.security.auth_to_local</name>
+    <value>{{ hadoop_security_auth_to_local }}</value>
+  </property>
 </configuration>

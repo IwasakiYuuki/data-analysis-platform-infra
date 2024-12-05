@@ -1,0 +1,35 @@
+services:
+  hadoop-namenode1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: hadoop-namenode1.home
+    container_name: hadoop-namenode1.home
+    command: tail -f /dev/null
+    networks:
+      hadoop:
+        ipv4_address: 172.21.0.10
+    extra_hosts:
+      - "hadoop-datanode1.home: 172.21.0.11"
+
+  hadoop-datanode1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: hadoop-datanode1.home
+    container_name: hadoop-datanode1.home
+    command: tail -f /dev/null
+    networks:
+      hadoop:
+        ipv4_address: 172.21.0.11
+    extra_hosts:
+      - "hadoop-namenode1.home: 172.21.0.10"
+
+networks:
+  hadoop:
+    driver: bridge
+    name: hadoop
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.21.0.0/16

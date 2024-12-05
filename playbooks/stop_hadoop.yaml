@@ -1,0 +1,40 @@
+- name: Stop NameNode
+  hosts: namenode
+  tasks:
+    - name: Stop HDFS
+      become: yes
+      become_user: hdfs
+      command: "bin/hdfs --daemon stop namenode"
+      args:
+        chdir: /opt/hadoop
+
+    - name: Stop YARN
+      become: yes
+      become_user: yarn
+      command: "bin/yarn --daemon stop resourcemanager"
+      args:
+        chdir: /opt/hadoop
+
+    - name: Stop MapReduce JobHistory Server
+      become: yes
+      become_user: mapred
+      command: "bin/mapred --daemon stop historyserver"
+      args:
+        chdir: /opt/hadoop
+
+- name: Stop DataNode
+  hosts: datanode
+  tasks:
+    - name: Stop HDFS
+      become: yes
+      become_user: hdfs
+      command: "bin/hdfs --daemon stop datanode"
+      args:
+        chdir: /opt/hadoop
+
+    - name: Stop YARN
+      become: yes
+      become_user: yarn
+      command: "bin/yarn --daemon stop nodemanager"
+      args:
+        chdir: /opt/hadoop

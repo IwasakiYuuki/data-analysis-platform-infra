@@ -15,10 +15,53 @@
 -->
 
 <configuration>
-{% for key, value in hadoop_config['hdfs-site'].items() %}
   <property>
-    <name>{{ key }}</name>
-    <value>{{ value }}</value>
+    <name>dfs.block.access.token.enable</name>
+    <value>{{ dfs_block_access_token_enable }}</value>
   </property>
-{% endfor %}
+  <property>
+    <name>dfs.namenode.kerberos.principal</name>
+    <value>{{ dfs_namenode_kerberos_principal }}</value>
+  </property>
+  <property>
+    <name>dfs.namenode.keytab.file</name>
+    <value>{{ dfs_namenode_keytab_file }}</value>
+  </property>
+  <property>
+    <name>dfs.namenode.kerberos.internal.spnego.principal</name>
+    <value>{{ dfs_namenode_kerberos_internal_spnego_principal }}</value>
+  </property>
+  <property>
+    <name>dfs.web.authentication.kerberos.keytab</name>
+    <value>{{ dfs_web_authentication_kerberos_keytab }}</value>
+  </property>
+  <property>
+    <name>dfs.http.policy</name>
+    <value>{{ dfs_http_policy }}</value>
+  </property>
+  <property>
+    <name>dfs.data.transfer.protection</name>
+    <value>{{ dfs_data_transfer_protection }}</value>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir.perm</name>
+    <value>{{ dfs_datanode_data_dir_perm }}</value>
+  </property>
+  <property>
+    <name>dfs.datanode.kerberos.principal</name>
+    <value>{{ dfs_datanode_kerberos_principal }}</value>
+  </property>
+  <property>
+    <name>dfs.datanode.keytab.file</name>
+    <value>{{ dfs_datanode_keytab_file }}</value>
+  </property>
+  <property>
+    <name>dfs.datanode.address</name>
+    <value>{{ dfs_datanode_address }}</value>
+  </property>
+  <property>
+    <name>dfs.datanode.http.address</name>
+    <value>{{ dfs_datanode_http_address }}</value>
+  </property>
 </configuration>
+

@@ -15,12 +15,28 @@
 -->
 
 <configuration>
-{% for key, value in hadoop_config['mapred-site'].items() %}
   <property>
-    <name>{{ key }}</name>
-    <value>{{ value }}</value>
+    <name>mapreduce.framework.name</name>
+    <value>{{ mapreduce_framework_name }}</value>
   </property>
-{% endfor %}
+  <property>
+    <name>mapreduce.jobhistory.keytab</name>
+    <value>{{ mapreduce_jobhistory_keytab }}</value>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.principal</name>
+    <value>{{ mapreduce_jobhistory_principal }}</value>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.env</name>
+    <value>{{ yarn_app_mapreduce_am_env }}</value>
+  </property>
+  <property>
+    <name>mapreduce.map.env</name>
+    <value>{{ mapreduce_map_env }}</value>
+  </property>
+  <property>
+    <name>mapreduce.reduce.env</name>
+    <value>{{ mapreduce_reduce_env }}</value>
+  </property>
 </configuration>
-
-
