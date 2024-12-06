@@ -1,0 +1,36 @@
+- name: Add hadoop user
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create user
+      user:
+        name: "{{ user_name }}"
+        group: hadoop
+        state: present
+        shell: /bin/bash
+
+- name: Create user home directory in HDFS
+  hosts: "{{ groups['namenode'][0] }}"
+  become: yes
+  become_user: hdfs
+  vars:
+    keytab: /etc/security/keytab/nn.service.keytab
+    principal: "nn/hadoop-namenode1.home@HOME"
+  tasks:
+    - name: Authenticated Kerberos
+      shell: kinit -kt {{ keytab }} {{ principal }}
+
+    - name: Create HDFS user dictionary
+      shell: "bin/hdfs dfs -mkdir /user/{{ user_name }}"
+      args:
+        chdir: /opt/hadoop
+
+    - name: Chmod HDFS user dictionary
+      shell: "bin/hdfs dfs -chmod 0755 /user/{{ user_name }}"
+      args:
+        chdir: /opt/hadoop
+
+    - name: Chown HDFS user dictionary
+      shell: "bin/hdfs dfs -chown {{ user_name }}:hadoop /user/{{ user_name }}"
+      args:
+        chdir: /opt/hadoop

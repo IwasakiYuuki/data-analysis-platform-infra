@@ -1,0 +1,9 @@
+- name: Format NameNode
+  hosts: "{{ groups['namenode'][0] }}"
+  tasks:
+    - name: Format HDFS
+      become: yes
+      become_user: hdfs
+      command: "bin/hdfs namenode -format"
+      args:
+        chdir: /opt/hadoop
