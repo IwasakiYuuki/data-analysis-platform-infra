@@ -1,68 +1,101 @@
-# Iwasakiyuuki Hadoop Collection
+# Ansible Hadoop Cluster
 
-This repository contains the `iwasakiyuuki.hadoop` Ansible Collection.
+Ansible playbooks for constructing hadoop cluster.  
+For now, the cluster has following features:
 
-<!--start requires_ansible-->
-<!--end requires_ansible-->
+1. Single namenode, multi datanodes
+2. Kerberos authentication
+3. HDFS, Yarn, MapReduce
+4. Docker containers for devlopment environment
 
-## External requirements
+## Requirements
 
-Some modules and plugins require external libraries. Please check the requirements for each plugin or module you use in the documentation to find out which requirements are needed.
+### Client machine for management the cluster
 
-## Included content
+1. Python
+2. Ansible
+3. Keytab files (put the specifying directories)
 
-<!--start collection content-->
-<!--end collection content-->
+### Nodes for NameNode/DataNode
 
-## Using this collection
+1. Debian (OS)
+2. SSH connection (to client machine)
+
+## Build and Start the cluster
+
+1. [SSH key copy](#1-ssh-key-copy)
+2. [Install Hadoop cluster binaries and settings](#2-install-hadoop-cluster-binaries-and-settings)
+3. [Init Hadoop cluster](#3-init-hadoop-cluster)
+4. [Start Hadoop cluster](#4-start-hadoop-cluster)
+5. [(Optional) Add user for executing yarn jobs](#5-optional-add-user-for-executing-yarn-jobs)
+
+### 1. SSH key copy
+
+Copy ssh keys to nodes from client machine for ansible.  
+It is recommended to configure the connection user in `.ssh/config` to avoid specifying the user in `hosts` of Ansible.
+
+```
+ssh-copy-id user@namenode_ip
+ssh-copy-id user@datanode1_ip
+ssh-copy-id user@datanode2_ip
+```
+
+### 2. Install Hadoop cluster binaries and settings
+
+Install Hadoop cluster binaries and settings to nodes.  
+Before running the playbook, you need to configure the following files:
+
+1. `inventories/dev/hosts` or `inventories/prod/hosts`
+2. `roles/hadoop/files/keytab`
+3. `roles/hadoop/files/jks`
+4. `roles/hadoop/defaults/main.yaml` (princial names, etc.)
+
+Also, you need to up docker containers if you use the development environment.
 
 ```bash
-    ansible-galaxy collection install iwasakiyuuki.hadoop
+docker compose up -d
 ```
 
-You can also include it in a `requirements.yml` file and install it via `ansible-galaxy collection install -r requirements.yml` using the format:
-
-```yaml
-collections:
-  - name: iwasakiyuuki.hadoop
+```
+ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_hadoop.yaml
 ```
 
-To upgrade the collection to the latest available version, run the following command:
+### 3. Init Hadoop cluster
 
-```bash
-ansible-galaxy collection install iwasakiyuuki.hadoop --upgrade
+You need to initialize the Hadoop cluster before starting it for first time.
+When starting the cluster for first line, A Ignored Error is occured at JobHistoryServer.
+It caused by the required directories are not created in HDFS yet, but it can be ignored.
+
+The keytab file path and principal name are required for the initialization.
+It can be specified as variables when running playbooks.
+
+Specifically, the following initialization processes are performed:
+
+1. Formatting HDFS
+2. Creating required directories in HDFS
+3. Granting permissions to the directories
+
+```
+ansible-playbook -i inventories/dev/hosts playbooks/start_hadoop.yaml
+ansible-playbook -i inventories/dev/hosts playbooks/format_hdfs.yaml
+ansible-playbook -i inventories/dev/hosts playbooks/init_hadoop.yaml
+ansible-playbook -i inventories/dev/hosts playbooks/stop_hadoop.yaml
 ```
 
-You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax where `X.Y.Z` can be any [available version](https://galaxy.ansible.com/iwasakiyuuki/hadoop):
+### 4. Start Hadoop cluster
 
-```bash
-ansible-galaxy collection install iwasakiyuuki.hadoop:==X.Y.Z
+Once the necessary initialization processes are complete, start the Hadoop cluster. At this stage, no errors should occur during startup.
+
+```
+ansible-playbook -i inventories/dev/hosts playbooks/start_hadoop.yaml
 ```
 
-See [Ansible Using collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html) for more details.
+### 5. (Optional) Add user for executing yarn jobs
 
-## Release notes
+For executing Yarn jobs, you need to add a user to the cluster, and also this playbooks create a user home directories in HDFS.
 
-See the [changelog](https://github.com/ansible-collections/iwasakiyuuki.hadoop/tree/main/CHANGELOG.rst).
-
-## Roadmap
-
-<!-- Optional. Include the roadmap for this collection, and the proposed release/versioning strategy so users can anticipate the upgrade/update cycle. -->
-
-## More information
-
-<!-- List out where the user can find additional information, such as working group meeting times, slack/IRC channels, or documentation for the product this collection automates. At a minimum, link to: -->
-
-- [Ansible Collection overview](https://github.com/ansible-collections/overview)
-- [Ansible User guide](https://docs.ansible.com/ansible/devel/user_guide/index.html)
-- [Ansible Developer guide](https://docs.ansible.com/ansible/devel/dev_guide/index.html)
-- [Ansible Collections Checklist](https://github.com/ansible-collections/overview/blob/main/collection_requirements.rst)
-- [Ansible Community code of conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html)
-- [The Bullhorn (the Ansible Contributor newsletter)](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn)
-- [News for Maintainers](https://github.com/ansible-collections/news-for-maintainers)
-
-## Licensing
-
-GNU General Public License v3.0 or later.
-
-See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text.
+```
+ansible-playbook -i inventories/dev/hosts \
+playbooks/add_hadoopuser.yaml \
+-e "user_name=<user>"
+```
