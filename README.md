@@ -10,18 +10,18 @@ For now, the cluster has following features:
 
 ## Requirements
 
-### Client machine for management the cluster
-
+### Management Node (Client Machine)
 1. Python
 2. Ansible
-3. Keytab files (put the specifying directories)
+3. Keytab files (place in the specified directories)
 
-### Nodes for NameNode/DataNode
-
-1. Debian (OS)
-2. SSH connection (to client machine)
+### Hadoop Nodes (NameNode/DataNodes)
+1. Debian-based OS
+2. SSH access from the management node
 
 ## Build and Start the cluster
+
+Follow these steps to build and start your Hadoop cluster:
 
 1. [SSH key copy](#1-ssh-key-copy)
 2. [Install Hadoop cluster binaries and settings](#2-install-hadoop-cluster-binaries-and-settings)
@@ -99,3 +99,9 @@ ansible-playbook -i inventories/dev/hosts \
 playbooks/add_hadoopuser.yaml \
 -e "user_name=<user>"
 ```
+
+## TODO
+
+- Add Other Hadoop ecosystems (Hive, Spark, etc.)
+- Seek the best practices for Authentication and user management
+- As more documents are created, they will be created separately under docs.
