@@ -1,0 +1,40 @@
+- name: Check if Spark directory exists
+  ansible.builtin.stat:
+    path: /opt/spark
+  register: spark_dir
+
+- name: Download Spark archive file
+  get_url:
+    url: "{{ spark_url }}"
+    dest: "/tmp/{{ spark_archive }}"
+    timeout: 300
+  when: not spark_dir.stat.exists
+
+- name: Unarchive the file
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ spark_archive }}"
+    dest: "/opt"
+    creates: "/opt/{{ spark_archive | replace('.tgz', '') }}"
+    remote_src: yes
+  when: not spark_dir.stat.exists
+
+- name: Create a symbolic link
+  file:
+    src: "/opt/{{ spark_archive | replace('.tgz', '') }}"
+    dest: "/opt/spark"
+    state: "link"
+  when: not spark_dir.stat.exists
+
+- name: Remove unarchive file
+  file:
+    path: /tmp/{{ spark_archive }}
+    state: absent
+  when: not spark_dir.stat.exists
+
+- name: Copy setting files to spark conf dir
+  template:
+    src: "{{ item }}.j2"
+    dest: "/opt/spark/conf/{{ item }}"
+  loop:
+    - spark-env.sh
+    - spark-defaults.conf

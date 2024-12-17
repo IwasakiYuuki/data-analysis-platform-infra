@@ -5,7 +5,7 @@ For now, the cluster has following features:
 
 1. Single namenode, multi datanodes
 2. Kerberos authentication
-3. HDFS, Yarn, MapReduce
+3. HDFS, Yarn, MapReduce, Spark
 4. Docker containers for devlopment environment
 
 ## Requirements
@@ -60,6 +60,11 @@ docker compose up -d
 ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_hadoop.yaml
 ```
 
+(Optional) Add Spark:
+```
+ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_spark.yaml
+```
+
 ### 3. Init Hadoop cluster
 
 You need to initialize the Hadoop cluster before starting it for first time.
@@ -76,8 +81,8 @@ Specifically, the following initialization processes are performed:
 3. Granting permissions to the directories
 
 ```
-ansible-playbook -i inventories/dev/hosts playbooks/start_hadoop.yaml
 ansible-playbook -i inventories/dev/hosts playbooks/format_hdfs.yaml
+ansible-playbook -i inventories/dev/hosts playbooks/start_hadoop.yaml
 ansible-playbook -i inventories/dev/hosts playbooks/init_hadoop.yaml
 ansible-playbook -i inventories/dev/hosts playbooks/stop_hadoop.yaml
 ```
@@ -102,6 +107,6 @@ playbooks/add_hadoopuser.yaml \
 
 ## TODO
 
-- Add Other Hadoop ecosystems (Hive, Spark, etc.)
+- Add Other Hadoop ecosystems (Hive, etc.)
 - Seek the best practices for Authentication and user management
 - As more documents are created, they will be created separately under docs.

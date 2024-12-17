@@ -13,6 +13,12 @@
     creates: "/opt/{{ jdk_archive | replace('.tar.gz', '') }}"
     remote_src: yes
 
+- name: Link to /opt/java
+  file:
+    src: "/opt/{{ jdk_archive | replace('.tar.gz', '') }}"
+    dest: "/opt/java"
+    state: link
+
 - name: Set JAVA_HOME fact
   set_fact:
     java_home: "/opt/{{ jdk_archive | replace('.tar.gz', '') }}"
