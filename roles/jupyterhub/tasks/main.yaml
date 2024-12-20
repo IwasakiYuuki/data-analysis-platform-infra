@@ -1,0 +1,10 @@
+- name: Install requierments
+  apt:
+    name:
+      - python3
+      - python3-dev
+      - git
+      - curl
+
+- name: Install JupyterHub
+  shell: curl -L https://tljh.jupyter.org/bootstrap.py | sudo -E python3 - --admin admin

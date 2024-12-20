@@ -1,5 +1,7 @@
 - name: Install Spark on YARN
-  hosts: all
+  hosts:
+    - hadoop_namenode
+    - hadoop_datanode
   become: yes
   roles:
     - spark

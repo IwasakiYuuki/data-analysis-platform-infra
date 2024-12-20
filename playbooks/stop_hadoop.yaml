@@ -1,5 +1,5 @@
 - name: Stop NameNode
-  hosts: namenode
+  hosts: hadoop_namenode
   tasks:
     - name: Stop HDFS
       become: yes
@@ -23,7 +23,7 @@
         chdir: /opt/hadoop
 
 - name: Stop DataNode
-  hosts: datanode
+  hosts: hadoop_datanode
   tasks:
     - name: Stop HDFS
       become: yes

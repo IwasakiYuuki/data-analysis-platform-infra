@@ -1,5 +1,5 @@
 - name: Start NameNode
-  hosts: namenode
+  hosts: hadoop_namenode
   tasks:
     - name: Start HDFS
       become: yes
@@ -24,7 +24,7 @@
       ignore_errors: yes
 
 - name: Start DataNode
-  hosts: datanode
+  hosts: hadoop_datanode
   tasks:
     - name: Start HDFS
       become: yes

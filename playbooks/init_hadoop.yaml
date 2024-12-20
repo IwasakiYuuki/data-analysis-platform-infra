@@ -1,5 +1,5 @@
 - name: init HDFS directories
-  hosts: "{{ groups['namenode'][0] }}"
+  hosts: "{{ groups['hadoop_namenode'][0] }}"
   become: yes
   become_user: hdfs
   vars:

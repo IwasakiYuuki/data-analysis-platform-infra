@@ -2,7 +2,7 @@ services:
   hadoop-namenode1:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.hadoop
     hostname: hadoop-namenode1.home
     container_name: hadoop-namenode1.home
     command: tail -f /dev/null
@@ -15,7 +15,7 @@ services:
   hadoop-datanode1:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.hadoop
     hostname: hadoop-datanode1.home
     container_name: hadoop-datanode1.home
     command: tail -f /dev/null
@@ -24,6 +24,24 @@ services:
         ipv4_address: 172.21.0.11
     extra_hosts:
       - "hadoop-namenode1.home: 172.21.0.10"
+
+  jupyterhub1:
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyterhub
+    privileged: true
+    environment:
+      TLJH_BOOTSTRAP_DEV: yes
+      TLJH_BOOTSTRAP_PIP_SPEC: /srv/src
+      PATH: "/opt/tljh/hub/bin:${PATH}"
+    hostname: jupyterhub1.home
+    container_name: jupyterhub1.home
+    networks:
+      hadoop:
+        ipv4_address: 172.21.0.12
+    extra_hosts:
+      - "hadoop-namenode1.home: 172.21.0.10"
+      - "hadoop-datanode1.home: 172.21.0.11"
 
 networks:
   hadoop:

@@ -1,5 +1,7 @@
 - name: Add hadoop user
-  hosts: all
+  hosts:
+    - hadoop_namenode
+    - hadoop_datanode
   become: yes
   tasks:
     - name: Create user
@@ -10,7 +12,7 @@
         shell: /bin/bash
 
 - name: Create user home directory in HDFS
-  hosts: "{{ groups['namenode'][0] }}"
+  hosts: "{{ groups['hadoop_namenode'][0] }}"
   become: yes
   become_user: hdfs
   vars:

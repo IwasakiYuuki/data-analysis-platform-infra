@@ -1,5 +1,5 @@
 - name: Format NameNode
-  hosts: "{{ groups['namenode'][0] }}"
+  hosts: "{{ groups['hadoop_namenode'][0] }}"
   tasks:
     - name: Format HDFS
       become: yes

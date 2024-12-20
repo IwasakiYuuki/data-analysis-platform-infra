@@ -12,7 +12,7 @@ krb_realm_config: |
 
 # Setting file (etc/hadoop/*)
 # core-site.xml
-fs_defaultFS: "hdfs://{{ groups['namenode'][0] }}:9000"
+fs_defaultFS: "hdfs://{{ groups['hadoop_namenode'][0] }}:9000"
 hadoop_tmp_dir: /opt/hadoop/tmp
 hadoop_security_authentication: kerberos
 hadoop_security_authorization: true
@@ -53,9 +53,9 @@ dfs_datanode_address: 0.0.0.0:9874
 dfs_datanode_http_address: 0.0.0.0:9876
 
 # yarn-site.xml
-yarn_resourcemanager_hostname: "{{ groups['namenode'][0] }}"
+yarn_resourcemanager_hostname: "{{ groups['hadoop_namenode'][0] }}"
 yarn_http_policy: HTTPS_ONLY
-yarn_resourcemanager_webapp_https_address: "{{ groups['namenode'][0] }}:8090"
+yarn_resourcemanager_webapp_https_address: "{{ groups['hadoop_namenode'][0] }}:8090"
 yarn_resourcemanager_principal: rm/_HOST@HOME
 yarn_resourcemanager_keytab: /etc/security/keytab/rm.service.keytab
 yarn_nodemanager_principal: nm/_HOST@HOME
