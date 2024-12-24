@@ -22,6 +22,8 @@ hadoop_security_auth_to_local: |-
   RULE:[2:$1/$2@$0]([rn]m/.*@HOME)s/.*/yarn/
   RULE:[2:$1/$2@$0](jhs/.*@HOME)s/.*/mapred/
   DEFAULT
+hadoop_proxyuser_jupyterhub_hosts: "*"
+hadoop_proxyuser_jupyterhub_groups: "*"
 
 # ssl-server.xml
 ssl_server_truststore_location: /etc/ssl/hadoop/truststore.jks

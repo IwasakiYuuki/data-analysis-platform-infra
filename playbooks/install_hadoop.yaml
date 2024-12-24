@@ -1,7 +1,5 @@
 - name: Install hadoop cluster
-  hosts:
-    - hadoop_namenode
-    - hadoop_datanode
+  hosts: all
   become: yes
   roles:
     - java

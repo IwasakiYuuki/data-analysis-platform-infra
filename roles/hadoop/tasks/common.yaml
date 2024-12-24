@@ -114,3 +114,18 @@
   file:
     path: /etc/security/keytab
     state: "directory"
+
+- name: Add /opt/hadoop/bin to global PATH in /etc/profile.d
+  ansible.builtin.file:
+    path: /etc/profile.d/hadoop.sh
+    state: touch
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure /opt/hadoop/bin is in PATH
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/hadoop.sh
+    line: 'export PATH=/opt/hadoop/bin:$PATH'
+    state: present
+    create: yes

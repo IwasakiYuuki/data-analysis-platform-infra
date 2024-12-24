@@ -38,3 +38,18 @@
   loop:
     - spark-env.sh
     - spark-defaults.conf
+
+- name: Add /opt/spark/bin to global PATH in /etc/profile.d
+  ansible.builtin.file:
+    path: /etc/profile.d/spark.sh
+    state: touch
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure /opt/spark/bin is in PATH
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/spark.sh
+    line: 'export PATH=/opt/spark/bin:$PATH'
+    state: present
+    create: yes

@@ -33,7 +33,7 @@ services:
     environment:
       TLJH_BOOTSTRAP_DEV: yes
       TLJH_BOOTSTRAP_PIP_SPEC: /srv/src
-      PATH: "/opt/tljh/hub/bin:${PATH}"
+      PATH: "/opt/tljh/hub/bin:/opt/hadoop/bin:/opt/java/bin:${PATH}"
     hostname: jupyterhub1.home
     container_name: jupyterhub1.home
     networks:
