@@ -1,12 +1,11 @@
-# Ansible Hadoop Cluster
+# Data Analysis Platform (infra)
 
-Ansible playbooks for constructing hadoop cluster.  
+IaC (Infrastructure as a Code) of Data Analysis Platform (on-premise).
 For now, the cluster has following features:
 
-1. Single namenode, multi datanodes
-2. Kerberos authentication
-3. HDFS, Yarn, MapReduce, Spark
-4. Docker containers for devlopment environment
+1. Hadoop cluster (Kerberos Authentication)
+2. Spark
+3. JupyterHub
 
 ## Requirements
 
@@ -40,7 +39,7 @@ ssh-copy-id user@datanode1_ip
 ssh-copy-id user@datanode2_ip
 ```
 
-### 2. Install Hadoop cluster binaries and settings
+### 2. Install Platform (Hadoop, Spark, JupyterHub)
 
 Install Hadoop cluster binaries and settings to nodes.  
 Before running the playbook, you need to configure the following files:
@@ -58,11 +57,8 @@ docker compose up -d
 
 ```
 ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_hadoop.yaml
-```
-
-(Optional) Add Spark:
-```
 ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_spark.yaml
+ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_jupyterhub.yaml
 ```
 
 ### 3. Init Hadoop cluster
