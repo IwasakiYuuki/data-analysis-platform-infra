@@ -6,3 +6,6 @@ hadoop-datanode1.home ansible_connection=docker
 
 [jupyterhub]
 jupyterhub1.home ansible_connection=docker
+
+[airflow]
+airflow1.home ansible_connection=docker

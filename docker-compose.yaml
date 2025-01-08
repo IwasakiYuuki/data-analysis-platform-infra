@@ -43,6 +43,22 @@ services:
       - "hadoop-namenode1.home: 172.21.0.10"
       - "hadoop-datanode1.home: 172.21.0.11"
 
+  airflow1:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    hostname: airflow1.home
+    container_name: airflow1.home
+    command: tail -f /dev/null
+    ports:
+      - 8080:8080
+    networks:
+      hadoop:
+        ipv4_address: 172.21.0.13
+    extra_hosts:
+      - "hadoop-namenode1.home: 172.21.0.10"
+      - "hadoop-datanode1.home: 172.21.0.11"
+
 networks:
   hadoop:
     driver: bridge

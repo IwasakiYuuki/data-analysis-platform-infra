@@ -1,0 +1,4 @@
+airflow_venv: /opt/airflow/venv
+airflow_version: 2.10.4
+python_version: 3.12
+constraint_url: "https://raw.githubusercontent.com/apache/airflow/constraints-{{ airflow_version }}/constraints-{{ python_version }}.txt"
