@@ -6,6 +6,7 @@ For now, the cluster has following features:
 1. Hadoop cluster (Kerberos Authentication)
 2. Spark
 3. JupyterHub
+4. Airflow
 
 ## Requirements
 
@@ -47,7 +48,9 @@ Before running the playbook, you need to configure the following files:
 1. `inventories/dev/hosts` or `inventories/prod/hosts`
 2. `roles/hadoop/files/keytab`
 3. `roles/hadoop/files/jks`
-4. `roles/hadoop/defaults/main.yaml` (princial names, etc.)
+4. `roles/jupyterhub/files` (keytab file)
+5. `roles/airflow/files` (keytab file)
+6. `roles/hadoop/defaults/main.yaml` (princial names, etc.)
 
 Also, you need to up docker containers if you use the development environment.
 
@@ -59,6 +62,7 @@ docker compose up -d
 ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_hadoop.yaml
 ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_spark.yaml
 ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_jupyterhub.yaml
+ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_airflow.yaml
 ```
 
 ### 3. Init Hadoop cluster
