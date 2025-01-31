@@ -40,6 +40,8 @@ services:
       PATH: "/opt/tljh/hub/bin:/opt/hadoop/bin:/opt/java/bin:${PATH}"
     hostname: jupyterhub1.home
     container_name: jupyterhub1.home
+    ports:
+      - 80:80
     networks:
       hadoop:
         ipv4_address: 172.21.0.12

@@ -23,11 +23,6 @@
     path: /etc/jupyterhub
     state: directory
 
-- name: Install Yarn Spawner
-  pip:
-    name: jupyterhub-yarnspawner
-    executable: /opt/tljh/hub/bin/pip
-
 - name: Install Configurable HTTP Proxy
   command: npm install -g configurable-http-proxy
 
@@ -41,9 +36,23 @@
     src: "jupyterhub.keytab"
     dest: "/etc/jupyterhub/jupyterhub.keytab"
 
+- name: Create symbolic link
+  file:
+    src: /etc/jupyterhub/jupyterhub_config.py
+    dest: /opt/tljh/config/jupyterhub_config.d/jupyterhub_config.py
+    state: link
+
 - name: Add Kerberos config to Spark
   blockinfile:
     path: /opt/spark/conf/spark-defaults.conf
     block: |
       spark.kerberos.keytab       /etc/jupyterhub/jupyterhub.keytab
       spark.kerberos.principal    jupyterhub@HOME
+
+- name: Ldap Authenticator
+  pip:
+    name: jupyterhub-ldapauthenticator
+    executable: /opt/tljh/hub/bin/pip
+
+- name: Restart JupyterHub
+  command: systemctl restart jupyterhub

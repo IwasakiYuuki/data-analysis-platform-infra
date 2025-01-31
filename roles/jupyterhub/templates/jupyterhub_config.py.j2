@@ -203,6 +203,7 @@ c = get_config()  #noqa
 #    - tmp: tmpauthenticator.TmpAuthenticator
 #  Default: 'jupyterhub.auth.PAMAuthenticator'
 # c.JupyterHub.authenticator_class = 'jupyterhub.auth.PAMAuthenticator'
+c.JupyterHub.authenticator_class = 'ldap'
 
 ## The base URL of the entire application.
 #  
@@ -4421,6 +4422,7 @@ c.Authenticator.allow_all = True
 #  `user_search_base` and `user_attribute` to accomplish this.
 #  Default: False
 # c.LDAPAuthenticator.lookup_dn = False
+c.LDAPAuthenticator.lookup_dn = True
 
 ## Only used with `lookup_dn=True`.
 #  
@@ -4451,6 +4453,7 @@ c.Authenticator.allow_all = True
 #  servers, this is username. For Active Directory, it is `sAMAccountName`.
 #  Default: None
 # c.LDAPAuthenticator.lookup_dn_user_dn_attribute = None
+c.LDAPAuthenticator.lookup_dn_user_dn_attribute = 'uid'
 
 ## Let authenticator manage user groups
 #  See also: Authenticator.manage_groups
@@ -4502,6 +4505,7 @@ c.Authenticator.allow_all = True
 #  Could be an IP address or hostname.
 #  Default: ''
 # c.LDAPAuthenticator.server_address = ''
+c.LDAPAuthenticator.server_address = '192.168.1.111'
 
 ## Port on which to contact the LDAP server.
 #  
@@ -4546,6 +4550,7 @@ c.Authenticator.allow_all = True
 #  Choices: any of ['before_bind', 'on_connect', 'insecure']
 #  Default: <TlsStrategy.before_bind: 1>
 # c.LDAPAuthenticator.tls_strategy = <TlsStrategy.before_bind: 1>
+c.LDAPAuthenticator.tls_strategy = 'insecure'
 
 ## Only used with `lookup_dn=True`.
 #  
@@ -4579,6 +4584,7 @@ c.Authenticator.allow_all = True
 #  # OpenLDAP c.LDAPAuthenticator.user_attribute = 'uid' ```
 #  Default: None
 # c.LDAPAuthenticator.user_attribute = None
+c.LDAPAuthenticator.user_attribute = 'uid'
 
 ## Only used with `lookup_dn=True` or with a configured `search_filter`.
 #  
@@ -4604,6 +4610,7 @@ c.Authenticator.allow_all = True
 #  c.LDAPAuthenticator.lookup_dn_user_dn_attribute = 'sAMAccountName' ```
 #  Default: None
 # c.LDAPAuthenticator.user_search_base = None
+c.LDAPAuthenticator.user_search_base = "ou=People,ou=development,dc=home"
 
 ## Dictionary mapping authenticator usernames to JupyterHub users.
 #  See also: Authenticator.username_map
