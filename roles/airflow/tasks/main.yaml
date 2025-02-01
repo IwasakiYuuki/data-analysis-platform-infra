@@ -2,6 +2,9 @@
   apt:
     name:
       - python3-venv
+      - libsasl2-dev
+      - libldap2-dev
+      - libssl-dev
     state: present
 
 - name: Create a virtual environment
@@ -10,7 +13,7 @@
     creates: "{{ airflow_venv }}"
 
 - name: Install Airflow with pip
-  command: "{{ airflow_venv }}/bin/pip install \"apache-airflow=={{ airflow_version }}\" --constraint {{ constraint_url }}"
+  command: "{{ airflow_venv }}/bin/pip install \"apache-airflow[ldap]=={{ airflow_version }}\" --constraint {{ constraint_url }}"
 
 - name: Create Airflow directory
   file:
@@ -19,8 +22,12 @@
 
 - name: Copy the airflow.cfg file
   copy:
-    src: airflow.cfg
-    dest: "{{ ansible_env.HOME }}/airflow/airflow.cfg"
+    src: "{{ item }}" 
+    dest: "{{ ansible_env.HOME }}/airflow/{{ item }}"
+  loop:
+    - airflow.cfg
+    - webserver_config.py
+
 
 - name: Create keytab directory
   file:
