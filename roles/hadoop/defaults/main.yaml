@@ -16,7 +16,8 @@ fs_defaultFS: "hdfs://{{ groups['hadoop_namenode'][0] }}:9000"
 hadoop_tmp_dir: /opt/hadoop/tmp
 hadoop_security_authentication: kerberos
 hadoop_security_authorization: true
-hadoop_rpc_protection: authentication
+# hadoop_rpc_protection: authentication
+hadoop_rpc_protection: privacy
 hadoop_security_auth_to_local: |-
   RULE:[2:$1/$2@$0]([ndj]n/.*@HOME)s/.*/hdfs/
   RULE:[2:$1/$2@$0]([rn]m/.*@HOME)s/.*/yarn/

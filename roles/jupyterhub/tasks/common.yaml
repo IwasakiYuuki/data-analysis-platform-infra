@@ -1,0 +1,21 @@
+- name: Install Kerberos
+  apt:
+    name: krb5-user
+    state: present
+
+- name: Add Realm to Kerberos
+  lineinfile:
+    path: /etc/krb5.conf
+    insertafter: "^\\[realms\\]"
+    line: |
+      HOME = {
+        kdc = kdc.home
+        admin_server = kdc.home
+      }
+
+- name: Change default_realm
+  ansible.builtin.lineinfile:
+    path: /etc/krb5.conf
+    regexp: "^(\\s*)default_realm\\s*="
+    line: "\\1default_realm = HOME"
+    backrefs: yes

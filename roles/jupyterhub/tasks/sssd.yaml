@@ -4,6 +4,8 @@
     state: present
   loop:
     - sssd
+    - sssd-krb5
+    - sssd-ldap
     - sssd-tools
     - libnss-sss
     - libpam-sss
