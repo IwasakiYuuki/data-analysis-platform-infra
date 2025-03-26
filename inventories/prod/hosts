@@ -1,6 +1,13 @@
-[namenode]
+[hadoop_namenode]
 hadoop-namenode1.home
 
-[datanode]
+[hadoop_datanode]
 hadoop-datanode1.home
+hadoop-datanode2.home
+hadoop-datanode3.home
 
+[airflow]
+airflow.home
+
+[jupyterhub]
+jupyterhub.home
