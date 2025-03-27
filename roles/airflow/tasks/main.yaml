@@ -21,13 +21,12 @@
     state: directory
 
 - name: Copy the airflow.cfg file
-  copy:
-    src: "{{ item }}" 
+  template:
+    src: "{{ item }}.j2" 
     dest: "{{ ansible_env.HOME }}/airflow/{{ item }}"
   loop:
     - airflow.cfg
     - webserver_config.py
-
 
 - name: Create keytab directory
   file:

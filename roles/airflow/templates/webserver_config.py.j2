@@ -108,8 +108,8 @@ AUTH_LDAP_EMAIL_FIELD = "mail"  # if null in LDAP, email is set to: "{username}@
 # search configs
 AUTH_LDAP_SEARCH = "ou=People,ou=development,dc=home"  # the LDAP search base
 AUTH_LDAP_UID_FIELD = "uid"  # the username field
-AUTH_LDAP_BIND_USER = "cn=admin,dc=home"  # the special bind username for search
-AUTH_LDAP_BIND_PASSWORD = "password"  # the special bind password for search
+AUTH_LDAP_BIND_USER = {{ ldap_admin_user }}  # the special bind username for search
+AUTH_LDAP_BIND_PASSWORD = {{ ldap_admin_password }}  # the special bind password for search
 
 # When using OpenID Auth, uncomment to setup OpenID providers.
 # example for OpenID authentication
