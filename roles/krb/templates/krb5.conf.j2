@@ -1,0 +1,30 @@
+[libdefaults]
+  default_realm = {{ libdefaults.default_realm }}
+  dns_lookup_kdc = {{ libdefaults.dns_lookup_kdc }}
+  dns_lookup_realm = {{ libdefaults.dns_lookup_realm }}
+  ticket_lifetime = {{ libdefaults.ticket_lifetime }}
+  renew_lifetime = {{ libdefaults.renew_lifetime }}
+  forwardable = {{ libdefaults.forwardable }}
+  proxiable = {{ libdefaults.proxiable }}
+  rdns = {{ libdefaults.rdns }}
+
+[realms]
+{% for realm, realm_config in realms.items() %}
+  {{ realm }} = {
+{% if realm_config.kdc is iterable %}
+{% for kdc in realm_config.kdc %}
+    kdc = {{ kdc }}
+{% endfor %}
+{% else %}
+    kdc = {{ realm_config.kdc }}
+{% endif %}
+{% if realm_config.admin_server %}
+    admin_server = {{ realm_config.admin_server }}
+{% endif %}
+  }
+{% endfor %}
+
+[domain_realm]
+{% for domain, realm in domain_realm.items() %}
+  {{ domain }} = {{ realm }}
+{% endfor %}

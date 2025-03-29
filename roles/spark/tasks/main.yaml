@@ -3,11 +3,25 @@
     path: /opt/spark
   register: spark_dir
 
-- name: Download Spark archive file
+- name: Check if Spark archive exists on control node
+  ansible.builtin.stat:
+    path: "/tmp/{{ spark_archive }}"
+  register: spark_archive_file
+  delegate_to: localhost
+
+- name: Download Spark archive file to control node
   get_url:
     url: "{{ spark_url }}"
     dest: "/tmp/{{ spark_archive }}"
     timeout: 300
+  when: not spark_dir.stat.exists and not spark_archive_file.stat.exists
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy Spark archive file to remote nodes
+  copy:
+    src: "/tmp/{{ spark_archive }}"
+    dest: "/tmp/{{ spark_archive }}"
   when: not spark_dir.stat.exists
 
 - name: Unarchive the file

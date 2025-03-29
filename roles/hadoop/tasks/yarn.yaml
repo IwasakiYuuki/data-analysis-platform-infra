@@ -52,11 +52,18 @@
         - zlib1g-dev
       state: present
 
-  - name: Download OpenSSL 1.1.1 archive file
+  - name: Download OpenSSL 1.1.1 archive file to control node
     get_url:
       url: https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1/openssl-1.1.1.tar.gz
       dest: /tmp
       timeout: 300
+    delegate_to: localhost
+    run_once: true
+
+  - name: Copy OpenSSL 1.1.1 archive file to remote nodes
+    copy:
+      src: /tmp/openssl-1.1.1.tar.gz
+      dest: /tmp/openssl-1.1.1.tar.gz
 
   - name: Unarchive the file
     ansible.builtin.unarchive:

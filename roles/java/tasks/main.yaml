@@ -1,9 +1,24 @@
 # Download and install JDK 8 for Hadoop
 # Set this JAVA_HOME later in Hadoop enviroment config file (hadoop-env.sh)
 
+- name: Check if JDK archive exists on control node
+  ansible.builtin.stat:
+    path: "/tmp/{{ jdk_archive }}"
+  register: jdk_archive_file
+  delegate_to: localhost
+
 - name: Download JDK archive file
   get_url:
     url: "{{ jdk_url }}"
+    dest: "/tmp/{{ jdk_archive }}"
+    timeout: 300
+  when: not jdk_archive_file.stat.exists
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy JDK archive file to remote nodes
+  copy:
+    src: "/tmp/{{ jdk_archive }}"
     dest: "/tmp/{{ jdk_archive }}"
 
 - name: Unarchive the file

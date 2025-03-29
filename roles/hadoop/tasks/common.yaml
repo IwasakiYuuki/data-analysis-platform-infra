@@ -17,11 +17,25 @@
     path: /opt/hadoop
   register: hadoop_dir
 
-- name: Download Hadoop archive file
+- name: Check if Hadoop archive exists on control node
+  ansible.builtin.stat:
+    path: "/tmp/{{ hadoop_archive }}"
+  register: hadoop_archive_file
+  delegate_to: localhost
+
+- name: Download Hadoop archive file to control node
   get_url:
     url: "{{ hadoop_url }}"
     dest: "/tmp/{{ hadoop_archive }}"
     timeout: 300
+  when: not hadoop_dir.stat.exists and not hadoop_archive_file.stat.exists
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy Hadoop archive file to remote nodes
+  copy:
+    src: "/tmp/{{ hadoop_archive }}"
+    dest: "/tmp/{{ hadoop_archive }}"
   when: not hadoop_dir.stat.exists
 
 - name: Unarchive the file
@@ -68,24 +82,6 @@
     - workers
 
 # In secure mode
-- name: Install Kerberos
-  apt:
-    name: krb5-user
-    state: present
-
-- name: Add Realm to Kerberos
-  lineinfile:
-    path: /etc/krb5.conf
-    insertafter: "^\\[realms\\]"
-    line: "{{ krb_realm_config }}"
-
-- name: Change default_realm
-  ansible.builtin.lineinfile:
-    path: /etc/krb5.conf
-    regexp: "^(\\s*)default_realm\\s*="
-    line: "\\1default_realm = {{ krb_default_realm }}"
-    backrefs: yes
-
 - name: Create a Hadoop SSL dir
   file:
     path: /etc/ssl/hadoop

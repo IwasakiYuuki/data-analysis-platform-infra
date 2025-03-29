@@ -1,4 +1,4 @@
-spark_version: "3.5.4"
+spark_version: "3.5.5"
 spark_archive: "spark-{{ spark_version }}-bin-without-hadoop.tgz"
 spark_url_prefix: "https://dlcdn.apache.org/spark/spark-{{ spark_version }}"
 spark_url: "{{ spark_url_prefix }}/{{ spark_archive }}"

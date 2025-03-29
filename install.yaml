@@ -1,0 +1,24 @@
+- name: Install Hadoop & Spark cluster
+  hosts:
+    - hadoop_namenode
+    - hadoop_datanode
+  become: yes
+  roles:
+    - krb
+    - java
+    - hadoop
+    - spark
+
+- name: Install Airflow
+  hosts: airflow
+  become: yes
+  roles:
+    - krb
+    - airflow
+
+- name: Install JupyterHub
+  hosts: jupyterhub
+  become: yes
+  roles:
+    - krb
+    - jupyterhub

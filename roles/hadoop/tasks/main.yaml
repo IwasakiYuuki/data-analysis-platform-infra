@@ -9,6 +9,3 @@
 
 - name: mapred tasks
   include_tasks: ./mapred.yaml
-
-- name: sssd tasks
-  include_tasks: ./sssd.yaml
