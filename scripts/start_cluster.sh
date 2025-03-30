@@ -20,6 +20,6 @@ fi
 ENV="$1"
 
 echo "Starting to $ENV environment..."
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/start_hadoop.yaml
+ansible-playbook -i "inventories/$ENV/hosts" playbooks/start.yaml
 
 echo "All playbooks executed successfully."

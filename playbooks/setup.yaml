@@ -1,6 +1,36 @@
-- name: init HDFS directories
-  hosts: "{{ groups['hadoop_namenode'][0] }}"
-  become: yes
+- name: (1/7) - Format NameNode
+  hosts: hadoop_namenode
+  tasks:
+    - name: Format HDFS
+      become: true
+      become_user: hdfs
+      command: "bin/hdfs namenode -format"
+      args:
+        chdir: /opt/hadoop
+
+- name: (2/7) - Start HDFS (NameNode)
+  hosts: hadoop_namenode
+  tasks:
+    - name: Start HDFS
+      become: true
+      become_user: hdfs
+      command: "bin/hdfs --daemon start namenode"
+      args:
+        chdir: /opt/hadoop
+
+- name: (3/7) - Start HDFS (DataNode)
+  hosts: hadoop_datanode
+  tasks:
+    - name: Start HDFS
+      become: true
+      become_user: hdfs
+      command: "bin/hdfs --daemon start datanode"
+      args:
+        chdir: /opt/hadoop
+
+- name: (4/7) - Init HDFS directories
+  hosts: hadoop_namenode
+  become: true
   become_user: hdfs
   vars:
     keytab: /etc/security/keytab/nn.service.keytab
@@ -54,5 +84,35 @@
         bin/hdfs dfs -mkdir /tmp/hadoop-yarn/staging/history/done
         bin/hdfs dfs -chmod 0750 /tmp/hadoop-yarn/staging/history/done
         bin/hdfs dfs -chown mapred:hadoop /tmp/hadoop-yarn/staging/history/done
+      args:
+        chdir: /opt/hadoop
+
+- name: (5/7) - Start YARN (ResourceManager)
+  hosts: hadoop_namenode
+  tasks:
+    - name: Start YARN
+      become: true
+      become_user: yarn
+      command: "bin/yarn --daemon start resourcemanager"
+      args:
+        chdir: /opt/hadoop
+
+- name: (6/7) - Start YARN (NodeManager)
+  hosts: hadoop_datanode
+  tasks:
+    - name: Start YARN
+      become: true
+      become_user: yarn
+      command: "bin/yarn --daemon start nodemanager"
+      args:
+        chdir: /opt/hadoop
+
+- name: (7/7) - Start MapReduce JobHistory Server
+  hosts: hadoop_namenode
+  tasks:
+    - name: Start MapReduce JobHistory Server
+      become: true
+      become_user: mapred
+      command: "bin/mapred --daemon start historyserver"
       args:
         chdir: /opt/hadoop

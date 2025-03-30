@@ -2,39 +2,39 @@
   hosts: hadoop_namenode
   tasks:
     - name: Start HDFS
-      become: yes
+      become: true
       become_user: hdfs
       command: "bin/hdfs --daemon start namenode"
       args:
         chdir: /opt/hadoop
 
     - name: Start YARN
-      become: yes
+      become: true
       become_user: yarn
       command: "bin/yarn --daemon start resourcemanager"
       args:
         chdir: /opt/hadoop
 
     - name: Start MapReduce JobHistory Server
-      become: yes
+      become: true
       become_user: mapred
       command: "bin/mapred --daemon start historyserver"
       args:
         chdir: /opt/hadoop
-      ignore_errors: yes
+      ignore_errors: true
 
 - name: Start DataNode
   hosts: hadoop_datanode
   tasks:
     - name: Start HDFS
-      become: yes
+      become: true
       become_user: hdfs
       command: "bin/hdfs --daemon start datanode"
       args:
         chdir: /opt/hadoop
 
     - name: Start YARN
-      become: yes
+      become: true
       become_user: yarn
       command: "bin/yarn --daemon start nodemanager"
       args:

@@ -1,6 +1,6 @@
 - name: Create user home directory in HDFS
   hosts: "{{ groups['hadoop_namenode'][0] }}"
-  become: yes
+  become: true
   become_user: hdfs
   vars:
     keytab: /etc/security/keytab/nn.service.keytab

@@ -11,16 +11,8 @@
 [realms]
 {% for realm, realm_config in realms.items() %}
   {{ realm }} = {
-{% if realm_config.kdc is iterable %}
-{% for kdc in realm_config.kdc %}
-    kdc = {{ kdc }}
-{% endfor %}
-{% else %}
     kdc = {{ realm_config.kdc }}
-{% endif %}
-{% if realm_config.admin_server %}
     admin_server = {{ realm_config.admin_server }}
-{% endif %}
   }
 {% endfor %}
 

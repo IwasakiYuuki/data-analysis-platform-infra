@@ -2,7 +2,7 @@
   hosts:
     - hadoop_namenode
     - hadoop_datanode
-  become: yes
+  become: true
   roles:
     - krb
     - java
@@ -11,14 +11,14 @@
 
 - name: Install Airflow
   hosts: airflow
-  become: yes
+  become: true
   roles:
     - krb
     - airflow
 
 - name: Install JupyterHub
   hosts: jupyterhub
-  become: yes
+  become: true
   roles:
     - krb
     - jupyterhub

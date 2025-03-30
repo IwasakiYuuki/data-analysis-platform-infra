@@ -19,16 +19,7 @@ fi
 
 ENV="$1"
 
-echo "Installing to $ENV environment..."
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/install_hadoop.yaml
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/install_spark.yaml
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/install_jupyterhub.yaml
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/install_airflow.yaml
-
-echo "Format HDFS..."
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/format_hdfs.yaml
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/start_hadoop.yaml
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/init_hadoop.yaml
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/stop_hadoop.yaml
+ansible-playbook -i "inventories/$ENV/hosts" playbooks/install.yaml
+ansible-playbook -i "inventories/$ENV/hosts" playbooks/setup.yaml
 
 echo "All playbooks executed successfully."

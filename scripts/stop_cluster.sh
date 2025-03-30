@@ -20,6 +20,6 @@ fi
 ENV="$1"
 
 echo "Stopping to $ENV environment..."
-ansible-playbook -i "inventories/$ENV/hosts" playbooks/stop_hadoop.yaml
+ansible-playbook -i "inventories/$ENV/hosts" playbooks/stop.yaml
 
 echo "All playbooks executed successfully."
