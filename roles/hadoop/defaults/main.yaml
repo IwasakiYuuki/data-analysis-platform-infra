@@ -49,6 +49,7 @@ dfs_namenode_kerberos_internal_spnego_principal: HTTP/_HOST@HOME
 dfs_web_authentication_kerberos_keytab: /etc/security/keytab/spnego.service.keytab
 dfs_http_policy: HTTPS_ONLY
 dfs_data_transfer_protection: authentication
+dfs_datanode_data_dir: /data1,/data2,/data3,/data4
 dfs_datanode_data_dir_perm: 700
 dfs_datanode_kerberos_principal: dn/_HOST@HOME
 dfs_datanode_keytab_file: /etc/security/keytab/dn.service.keytab
@@ -69,6 +70,9 @@ yarn_nodemanager_linux_container_executor_path: /opt/hadoop/bin/container-execut
 yarn_nodemanager_webapp_https_address: 0.0.0.0:8044
 yarn_nodemanager_aux_services: mapreduce_shuffle
 yarn_nodemanager_aux_services_mapreduce_shuffle_class: org.apache.hadoop.mapred.ShuffleHandler
+yarn_nodemanager_resource_memory_mb: 24576
+yarn_nodemanager_resource_cpu_vcores: 8
+
 
 # mapred-site.xml
 mapreduce_framework_name: yarn

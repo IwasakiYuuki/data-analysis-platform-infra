@@ -1,13 +1,13 @@
 [hadoop_namenode]
-hadoop-namenode1.home
+hadoop-namenode1.home ansible_ssh_user=ubuntu
 
 [hadoop_datanode]
-hadoop-datanode1.home
-hadoop-datanode2.home
-hadoop-datanode3.home
+hadoop-datanode1.home ansible_ssh_user=ubuntu
+hadoop-datanode2.home ansible_ssh_user=ubuntu
+hadoop-datanode3.home ansible_ssh_user=ubuntu
 
 [airflow]
-airflow.home
+airflow1.home ansible_ssh_user=ubuntu
 
 [jupyterhub]
-jupyterhub.home
+jupyterhub1.home ansible_ssh_user=ubuntu

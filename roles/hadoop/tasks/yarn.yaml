@@ -52,13 +52,21 @@
         - zlib1g-dev
       state: present
 
+  - name: Check if OpenSSL 1.1.1 archive already exists
+    stat:
+      path: /tmp/openssl-1.1.1.tar.gz
+    register: openssl_archive_exists
+    delegate_to: localhost
+    become: false
+
   - name: Download OpenSSL 1.1.1 archive file to control node
     get_url:
       url: https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1/openssl-1.1.1.tar.gz
       dest: /tmp
       timeout: 300
     delegate_to: localhost
-    run_once: true
+    become: false
+    when: not openssl_archive_exists.stat.exists
 
   - name: Copy OpenSSL 1.1.1 archive file to remote nodes
     copy:

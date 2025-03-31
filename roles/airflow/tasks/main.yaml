@@ -13,7 +13,7 @@
     creates: "{{ airflow_venv }}"
 
 - name: Install Airflow with pip
-  command: "{{ airflow_venv }}/bin/pip install \"apache-airflow[ldap]=={{ airflow_version }}\" --constraint {{ constraint_url }}"
+  command: "{{ airflow_venv }}/bin/pip install \"apache-airflow=={{ airflow_version }}\" --constraint {{ constraint_url }}"
 
 - name: Create Airflow directory
   file:
