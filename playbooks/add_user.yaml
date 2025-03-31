@@ -1,19 +1,6 @@
-- name: Add hadoop user
-  hosts:
-    - hadoop_namenode
-    - hadoop_datanode
-  become: yes
-  tasks:
-    - name: Create user
-      user:
-        name: "{{ user_name }}"
-        group: hadoop
-        state: present
-        shell: /bin/bash
-
 - name: Create user home directory in HDFS
   hosts: "{{ groups['hadoop_namenode'][0] }}"
-  become: yes
+  become: true
   become_user: hdfs
   vars:
     keytab: /etc/security/keytab/nn.service.keytab

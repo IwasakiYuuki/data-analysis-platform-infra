@@ -2,21 +2,21 @@
   hosts: hadoop_namenode
   tasks:
     - name: Stop HDFS
-      become: yes
+      become: true
       become_user: hdfs
       command: "bin/hdfs --daemon stop namenode"
       args:
         chdir: /opt/hadoop
 
     - name: Stop YARN
-      become: yes
+      become: true
       become_user: yarn
       command: "bin/yarn --daemon stop resourcemanager"
       args:
         chdir: /opt/hadoop
 
     - name: Stop MapReduce JobHistory Server
-      become: yes
+      become: true
       become_user: mapred
       command: "bin/mapred --daemon stop historyserver"
       args:
@@ -26,14 +26,14 @@
   hosts: hadoop_datanode
   tasks:
     - name: Stop HDFS
-      become: yes
+      become: true
       become_user: hdfs
       command: "bin/hdfs --daemon stop datanode"
       args:
         chdir: /opt/hadoop
 
     - name: Stop YARN
-      become: yes
+      become: true
       become_user: yarn
       command: "bin/yarn --daemon stop nodemanager"
       args:

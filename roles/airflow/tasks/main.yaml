@@ -13,7 +13,7 @@
     creates: "{{ airflow_venv }}"
 
 - name: Install Airflow with pip
-  command: "{{ airflow_venv }}/bin/pip install \"apache-airflow[ldap]=={{ airflow_version }}\" --constraint {{ constraint_url }}"
+  command: "{{ airflow_venv }}/bin/pip install \"apache-airflow=={{ airflow_version }}\" --constraint {{ constraint_url }}"
 
 - name: Create Airflow directory
   file:
@@ -21,13 +21,12 @@
     state: directory
 
 - name: Copy the airflow.cfg file
-  copy:
-    src: "{{ item }}" 
+  template:
+    src: "{{ item }}.j2" 
     dest: "{{ ansible_env.HOME }}/airflow/{{ item }}"
   loop:
     - airflow.cfg
     - webserver_config.py
-
 
 - name: Create keytab directory
   file:
@@ -38,28 +37,6 @@
   copy:
     src: airflow.keytab
     dest: /etc/security/airflow/airflow.keytab
-
-- name: Install Kerberos
-  apt:
-    name: krb5-user
-    state: present
-
-- name: Add Realm to Kerberos
-  lineinfile:
-    path: /etc/krb5.conf
-    insertafter: "^\\[realms\\]"
-    line: |
-      HOME = {
-        kdc = kdc.home
-        admin_server = kdc.home
-      }
-
-- name: Change default_realm
-  ansible.builtin.lineinfile:
-    path: /etc/krb5.conf
-    regexp: "^(\\s*)default_realm\\s*="
-    line: "\\1default_realm = HOME"
-    backrefs: yes
 
 - name: Start standalone server
   shell: |

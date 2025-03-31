@@ -23,7 +23,7 @@ import os
 
 from flask_appbuilder.const import AUTH_DB
 
-from airflow.www.fab_security.manager import AUTH_LDAP
+# from airflow.www.fab_security.manager import AUTH_LDAP
 # from airflow.www.fab_security.manager import AUTH_OAUTH
 # from airflow.www.fab_security.manager import AUTH_OID
 # from airflow.www.fab_security.manager import AUTH_REMOTE_USER
@@ -48,8 +48,8 @@ WTF_CSRF_TIME_LIMIT = None
 # AUTH_LDAP : Is for LDAP
 # AUTH_REMOTE_USER : Is for using REMOTE_USER from web server
 # AUTH_OAUTH : Is for OAuth
-# AUTH_TYPE = AUTH_DB
-AUTH_TYPE = AUTH_LDAP
+AUTH_TYPE = AUTH_DB
+# AUTH_TYPE = AUTH_LDAP
 
 # Uncomment to setup Full admin role name
 # AUTH_ROLE_ADMIN = 'Admin'
@@ -95,21 +95,21 @@ AUTH_TYPE = AUTH_LDAP
 
 # When using LDAP Auth, setup the ldap server
 # AUTH_LDAP_SERVER = "ldap://ldapserver.new"
-AUTH_LDAP_SERVER = "ldap://192.168.1.111"
-AUTH_LDAP_USE_TLS = False
+# AUTH_LDAP_SERVER = "ldap://192.168.1.111"
+# AUTH_LDAP_USE_TLS = False
 
-# registration configs
-AUTH_USER_REGISTRATION = True  # allow users who are not already in the FAB DB
-AUTH_USER_REGISTRATION_ROLE = "Public"  # this role will be given in addition to any AUTH_ROLES_MAPPING
-AUTH_LDAP_FIRSTNAME_FIELD = "givenName"
-AUTH_LDAP_LASTNAME_FIELD = "sn"
-AUTH_LDAP_EMAIL_FIELD = "mail"  # if null in LDAP, email is set to: "{username}@email.notfound"
+# # registration configs
+# AUTH_USER_REGISTRATION = True  # allow users who are not already in the FAB DB
+# AUTH_USER_REGISTRATION_ROLE = "Public"  # this role will be given in addition to any AUTH_ROLES_MAPPING
+# AUTH_LDAP_FIRSTNAME_FIELD = "givenName"
+# AUTH_LDAP_LASTNAME_FIELD = "sn"
+# AUTH_LDAP_EMAIL_FIELD = "mail"  # if null in LDAP, email is set to: "{username}@email.notfound"
 
-# search configs
-AUTH_LDAP_SEARCH = "ou=People,ou=development,dc=home"  # the LDAP search base
-AUTH_LDAP_UID_FIELD = "uid"  # the username field
-AUTH_LDAP_BIND_USER = "cn=admin,dc=home"  # the special bind username for search
-AUTH_LDAP_BIND_PASSWORD = "password"  # the special bind password for search
+# # search configs
+# AUTH_LDAP_SEARCH = "ou=People,ou=development,dc=home"  # the LDAP search base
+# AUTH_LDAP_UID_FIELD = "uid"  # the username field
+# AUTH_LDAP_BIND_USER = {{ ldap_admin_user }}  # the special bind username for search
+# AUTH_LDAP_BIND_PASSWORD = {{ ldap_admin_password }}  # the special bind password for search
 
 # When using OpenID Auth, uncomment to setup OpenID providers.
 # example for OpenID authentication

@@ -1,4 +1,0 @@
-- name: Install Airflow
-  hosts: airflow
-  roles:
-    - airflow

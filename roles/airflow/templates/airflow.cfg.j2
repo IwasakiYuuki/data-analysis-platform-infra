@@ -741,6 +741,7 @@ colored_console_log = True
 #
 # Variable: AIRFLOW__LOGGING__COLORED_LOG_FORMAT
 #
+{% raw %}
 colored_log_format = [%%(blue)s%%(asctime)s%%(reset)s] {%%(blue)s%%(filename)s:%%(reset)s%%(lineno)d} %%(log_color)s%%(levelname)s%%(reset)s - %%(log_color)s%%(message)s%%(reset)s
 
 # Specifies the class utilized by Airflow to implement colored logging
@@ -791,6 +792,7 @@ log_formatter_class = airflow.utils.log.timezone_aware.TimezoneAware
 #
 # Variable: AIRFLOW__LOGGING__SECRET_MASK_ADAPTER
 #
+
 secret_mask_adapter = 
 
 # Specify prefix pattern like mentioned below with stream handler ``TaskHandlerWithCustomFormatter``
@@ -812,6 +814,8 @@ log_filename_template = dag_id={{ ti.dag_id }}/run_id={{ ti.run_id }}/task_id={{
 # Variable: AIRFLOW__LOGGING__LOG_PROCESSOR_FILENAME_TEMPLATE
 #
 log_processor_filename_template = {{ filename }}.log
+
+{% endraw %}
 
 # Full path of dag_processor_manager logfile.
 #
@@ -1878,15 +1882,15 @@ require_confirmation_dag_change = False
 
 
 # Custom settings for LDAP
-authenticate = True
-auth_backend = airflow.contrib.auth.backends.ldap_auth
+# authenticate = True
+# auth_backend = airflow.contrib.auth.backends.ldap_auth
 
 [ldap]
 # set a connection without encryption: uri = ldap://<your.ldap.server>:<port>
-uri = ldap://192.168.1.111
-user_filter = objectClass=*
+# uri = ldap://192.168.1.111
+# user_filter = objectClass=*
 # in case of Active Directory you would use: user_name_attr = sAMAccountName
-user_name_attr = uid
+# user_name_attr = uid
 # # group_member_attr should be set accordingly with *_filter
 # # eg :
 # #     group_member_attr = groupMembership
@@ -1894,14 +1898,14 @@ user_name_attr = uid
 # group_member_attr = member
 # superuser_filter = memberOf=CN=airflow-super-users,OU=Groups,OU=RWC,OU=US,OU=NORAM,DC=example,DC=com
 # data_profiler_filter = memberOf=CN=airflow-data-profilers,OU=Groups,OU=RWC,OU=US,OU=NORAM,DC=example,DC=com
-bind_user = cn=admin,dc=home
-bind_password = password
-basedn = ou=People,ou=development,dc=home
+# bind_user = {{ ldap_admin_user }}
+# bind_password = {{ ldap_admin_password }}
+# basedn = ou=People,ou=development,dc=home
 # cacert = /etc/ca/ldap_ca.crt
 # Set search_scope to one of them:  BASE, LEVEL , SUBTREE
 # Set search_scope to SUBTREE if using Active Directory, and not specifying an Organizational Unit
 # search_scope = LEVEL
-search_scope = LEVEL
+# search_scope = LEVEL
 
 
 [email]

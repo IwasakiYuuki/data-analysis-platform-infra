@@ -1,7 +1,3 @@
-- name: Set secure mode
-  set_fact:
-    secure_mode: "{{ hadoop_security_authentication == 'kerberos' }}"
-
 - name: Install dependencies
   apt:
     name: acl
@@ -17,11 +13,28 @@
     path: /opt/hadoop
   register: hadoop_dir
 
-- name: Download Hadoop archive file
+- name: Check if Hadoop archive exists on control node
+  ansible.builtin.stat:
+    path: "/tmp/{{ hadoop_archive }}"
+  register: hadoop_archive_file
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Download Hadoop archive file to control node
   get_url:
     url: "{{ hadoop_url }}"
     dest: "/tmp/{{ hadoop_archive }}"
     timeout: 300
+  when: not hadoop_archive_file.stat.exists
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Copy Hadoop archive file to remote nodes
+  copy:
+    src: "/tmp/{{ hadoop_archive }}"
+    dest: "/tmp/{{ hadoop_archive }}"
   when: not hadoop_dir.stat.exists
 
 - name: Unarchive the file
@@ -67,29 +80,13 @@
     - core-site.xml
     - workers
 
-# In secure mode
-- name: Install Kerberos
-  apt:
-    name: krb5-user
-    state: present
-
-- name: Add Realm to Kerberos
-  lineinfile:
-    path: /etc/krb5.conf
-    insertafter: "^\\[realms\\]"
-    line: "{{ krb_realm_config }}"
-
-- name: Change default_realm
-  ansible.builtin.lineinfile:
-    path: /etc/krb5.conf
-    regexp: "^(\\s*)default_realm\\s*="
-    line: "\\1default_realm = {{ krb_default_realm }}"
-    backrefs: yes
-
-- name: Create a Hadoop SSL dir
+- name: Create a Hadoop security dir
   file:
-    path: /etc/ssl/hadoop
+    path: "{{ item }}"
     state: "directory"
+  loop:
+    - /etc/ssl/hadoop
+    - /etc/security/keytab
 
 - name: Copy SSL credentials
   copy:
@@ -101,7 +98,7 @@
     - "keystore.jks"
     - "truststore.jks"
 
-- name: Copy setting files to hadoop dir (Secure mode)
+- name: Copy setting files to hadoop dir
   template:
     src: "{{ item }}.j2"
     dest: "/opt/hadoop/etc/hadoop/{{ item }}"
@@ -109,11 +106,6 @@
     mode: "0644"
   loop:
     - ssl-server.xml
-
-- name: Create a Keytab dir
-  file:
-    path: /etc/security/keytab
-    state: "directory"
 
 - name: Add /opt/hadoop/bin to global PATH in /etc/profile.d
   ansible.builtin.file:

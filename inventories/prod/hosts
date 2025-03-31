@@ -1,6 +1,13 @@
-[namenode]
-hadoop-namenode1.home
+[hadoop_namenode]
+hadoop-namenode1.home ansible_ssh_user=ubuntu
 
-[datanode]
-hadoop-datanode1.home
+[hadoop_datanode]
+hadoop-datanode1.home ansible_ssh_user=ubuntu
+hadoop-datanode2.home ansible_ssh_user=ubuntu
+hadoop-datanode3.home ansible_ssh_user=ubuntu
 
+[airflow]
+airflow1.home ansible_ssh_user=ubuntu
+
+[jupyterhub]
+jupyterhub1.home ansible_ssh_user=ubuntu

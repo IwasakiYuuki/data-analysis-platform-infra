@@ -1,5 +1,0 @@
-- name: Install JpyterHub
-  hosts: jupyterhub
-  become: yes
-  roles:
-    - jupyterhub
