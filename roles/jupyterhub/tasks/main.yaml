@@ -31,11 +31,6 @@
     src: jupyterhub_config.py.j2
     dest: /etc/jupyterhub/jupyterhub_config.py
 
-- name: Copy keytab files
-  copy:
-    src: "jupyterhub.keytab"
-    dest: "/etc/jupyterhub/jupyterhub.keytab"
-
 - name: Create symbolic link
   file:
     src: /etc/jupyterhub/jupyterhub_config.py
