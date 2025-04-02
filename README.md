@@ -45,12 +45,10 @@ ssh-copy-id user@datanode2_ip
 Install Hadoop cluster binaries and settings to nodes.  
 Before running the playbook, you need to configure the following files:
 
-1. `inventories/dev/hosts` or `inventories/prod/hosts`
-2. `roles/hadoop/files/keytab`
-3. `roles/hadoop/files/jks`
-4. `roles/jupyterhub/files` (keytab file)
-5. `roles/airflow/files` (keytab file)
-6. `roles/hadoop/defaults/main.yaml` (princial names, etc.)
+1. Ansible hosts file (`inventories/(dev|prod)/hosts`)
+2. Keytab files (`roles/hadoop/files/keytab`, `role/airflow/files`)
+3. SSL certificate (`roles/hadoop/files/jks`)
+5. Platform settings (`roles/.../defaults/main.yaml`)
 
 Also, you need to up docker containers if you use the development environment.
 
@@ -59,10 +57,7 @@ docker compose up -d
 ```
 
 ```
-ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_hadoop.yaml
-ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_spark.yaml
-ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_jupyterhub.yaml
-ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install_airflow.yaml
+ansible-playbook -i inventories/(dev|prod)/hosts playbooks/install.yaml
 ```
 
 ### 3. Init Hadoop cluster
@@ -81,10 +76,7 @@ Specifically, the following initialization processes are performed:
 3. Granting permissions to the directories
 
 ```
-ansible-playbook -i inventories/dev/hosts playbooks/format_hdfs.yaml
-ansible-playbook -i inventories/dev/hosts playbooks/start_hadoop.yaml
-ansible-playbook -i inventories/dev/hosts playbooks/init_hadoop.yaml
-ansible-playbook -i inventories/dev/hosts playbooks/stop_hadoop.yaml
+ansible-playbook -i inventories/dev/hosts playbooks/setup.yaml
 ```
 
 ### 4. Start Hadoop cluster
@@ -92,7 +84,7 @@ ansible-playbook -i inventories/dev/hosts playbooks/stop_hadoop.yaml
 Once the necessary initialization processes are complete, start the Hadoop cluster. At this stage, no errors should occur during startup.
 
 ```
-ansible-playbook -i inventories/dev/hosts playbooks/start_hadoop.yaml
+ansible-playbook -i inventories/dev/hosts playbooks/start.yaml
 ```
 
 ### 5. (Optional) Add user for executing yarn jobs
