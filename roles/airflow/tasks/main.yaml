@@ -1,3 +1,10 @@
+- name: Create user
+  user:
+    name: airflow
+    shell: /bin/bash
+    home: /home/airflow
+    create_home: yes
+
 - name: Install venv package
   apt:
     name:
@@ -23,7 +30,7 @@
 - name: Copy the airflow.cfg file
   template:
     src: "{{ item }}.j2" 
-    dest: "{{ ansible_env.HOME }}/airflow/{{ item }}"
+    dest: "/home/airflow/airflow/{{ item }}"
   loop:
     - airflow.cfg
     - webserver_config.py
@@ -38,9 +45,29 @@
     src: airflow.keytab
     dest: /etc/security/airflow/airflow.keytab
 
-- name: Start standalone server
-  shell: |
-    . "{{ airflow_venv }}"/bin/activate
-    airflow db migrate > /tmp/airflow_db_migrate.log 2>&1
-    airflow standalone > /tmp/airflow_standalone.log 2>&1 &
-    airflow kerberos > /tmp/airflow_kerberos.log 2>&1 &
+- name: Migrate the database
+  command: "{{ airflow_venv }}/bin/airflow db migrate"
+
+- name: Copy systemd service file
+  copy:
+    src: "{{ item }}.service"
+    dest: "/etc/systemd/system/{{ item }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - airflow-standalone
+    - airflow-kerberos
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start and enable Airflow services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - airflow-standalone
+    - airflow-kerberos
