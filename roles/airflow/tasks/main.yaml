@@ -9,6 +9,7 @@
   apt:
     name:
       - python3-venv
+      - libkrb5-dev
       - libsasl2-dev
       - libldap2-dev
       - libssl-dev
@@ -21,6 +22,12 @@
 
 - name: Install Airflow with pip
   command: "{{ airflow_venv }}/bin/pip install \"apache-airflow=={{ airflow_version }}\" --constraint {{ constraint_url }}"
+
+- name: Install Airflow kerberos extension with pip
+  command: "{{ airflow_venv }}/bin/pip install apache-airflow[kerberos]"
+
+- name: Install Airflow hdfs extension with pip
+  command: "{{ airflow_venv }}/bin/pip install apache-airflow[hdfs]"
 
 - name: Create Airflow directory
   file:

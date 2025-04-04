@@ -6,7 +6,7 @@
   tasks:
     - name: Create user
       user:
-        name: {{ user_name }}
+        name: "{{ user_name }}"
         group: hadoop
         state: present
         shell: /bin/bash

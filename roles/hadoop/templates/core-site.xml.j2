@@ -47,4 +47,16 @@
     <name>hadoop.proxyuser.jupyterhub.groups</name>
     <value>{{ hadoop_proxyuser_jupyterhub_groups }}</value>
   </property>
+  <property>
+    <name>hadoop.http.authentication.type</name>
+    <value>{{ hadoop_http_authentication_type }}</value>
+  </property>
+  <property>
+    <name>hadoop.http.authentication.kerberos.principal</name>
+    <value>{{ hadoop_http_authentication_kerberos_principal }}</value>
+  </property>
+  <property>
+    <name>hadoop.http.authentication.kerberos.keytab</name>
+    <value>{{ hadoop_http_authentication_kerberos_keytab }}</value>
+  </property>
 </configuration>

@@ -25,6 +25,9 @@ hadoop_security_auth_to_local: |-
   DEFAULT
 hadoop_proxyuser_jupyterhub_hosts: "*"
 hadoop_proxyuser_jupyterhub_groups: "*"
+hadoop_http_authentication_type: kerberos
+hadoop_http_authentication_kerberos_principal: HTTP/_HOST@HOME
+hadoop_http_authentication_kerberos_keytab: /etc/security/keytab/spnego.service.keytab
 
 # ssl-server.xml
 ssl_server_truststore_location: /etc/ssl/hadoop/truststore.jks
