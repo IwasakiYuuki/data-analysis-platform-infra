@@ -20,3 +20,13 @@
     group: hadoop
     mode: "0644"
     directory_mode: "0755"
+
+- name: Copy systemd service file
+  copy:
+    src: "systemd/hadoop-{{ item }}.service"
+    dest: "/etc/systemd/system/hadoop-{{ item }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - historyserver

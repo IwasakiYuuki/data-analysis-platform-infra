@@ -1,0 +1,30 @@
+[Unit]
+Description=Hadoop NameNode
+After=network.target
+After=syslog.target
+
+[Service]
+Type=forking
+User=hdfs
+Group=hadoop
+PIDFile=/tmp/hadoop-hdfs-namenode.pid
+WorkingDirectory=/opt/hadoop
+
+# Hadoopに必要な環境変数を設定
+# Environment="HADOOP_HOME=/path/to/hadoop"
+# Environment="HADOOP_CONF_DIR=/path/to/hadoop/etc/hadoop"
+# Environment="JAVA_HOME=/path/to/your/java"
+
+ExecStart=/opt/hadoop/bin/hdfs --daemon start namenode
+ExecStop=/opt/hadoop/bin/hdfs --daemon stop namenode
+
+# 異常終了時に自動で再起動する場合
+Restart=on-failure
+RestartSec=10
+
+# リソース制限
+LimitNOFILE=65536
+LimitNPROC=65536
+
+[Install]
+WantedBy=multi-user.target

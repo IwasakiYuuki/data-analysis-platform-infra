@@ -33,3 +33,14 @@
     - "sn.service.keytab"
     - "dn.service.keytab"
     - "spnego.service.keytab"
+
+- name: Copy systemd service file
+  copy:
+    src: "systemd/hadoop-{{ item }}.service"
+    dest: "/etc/systemd/system/hadoop-{{ item }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - namenode
+    - datanode

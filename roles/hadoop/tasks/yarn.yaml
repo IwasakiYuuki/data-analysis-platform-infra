@@ -32,6 +32,17 @@
     path: /opt/hadoop/bin/container-executor
     mode: "4750"
 
+- name: Copy systemd service file
+  copy:
+    src: "systemd/hadoop-{{ item }}.service"
+    dest: "/etc/systemd/system/hadoop-{{ item }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - resourcemanager
+    - nodemanager
+
 # Downgrade OpenSSL to 1.1.1 for Linux Container Executor
 # (Default in many case is more than 3.0)
 

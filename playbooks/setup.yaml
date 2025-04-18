@@ -1,4 +1,4 @@
-- name: (1/7) - Format NameNode
+- name: (1/11) - Format NameNode
   hosts: hadoop_namenode
   tasks:
     - name: Format HDFS
@@ -8,7 +8,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (2/7) - Start HDFS (NameNode)
+- name: (2/11) - Start HDFS (NameNode)
   hosts: hadoop_namenode
   tasks:
     - name: Start HDFS
@@ -18,7 +18,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (3/7) - Start HDFS (DataNode)
+- name: (3/11) - Start HDFS (DataNode)
   hosts: hadoop_datanode
   tasks:
     - name: Start HDFS
@@ -28,7 +28,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (4/7) - Init HDFS directories
+- name: (4/11) - Init HDFS directories
   hosts: hadoop_namenode
   become: true
   become_user: hdfs
@@ -87,32 +87,72 @@
       args:
         chdir: /opt/hadoop
 
-- name: (5/7) - Start YARN (ResourceManager)
+- name: (5/11) - Stop HDFS (NameNode)
   hosts: hadoop_namenode
   tasks:
-    - name: Start YARN
+    - name: Stop HDFS
       become: true
-      become_user: yarn
-      command: "bin/yarn --daemon start resourcemanager"
+      become_user: hdfs
+      command: "bin/hdfs --daemon stop namenode"
       args:
         chdir: /opt/hadoop
 
-- name: (6/7) - Start YARN (NodeManager)
+- name: (6/11) - Stop HDFS (DataNode)
   hosts: hadoop_datanode
   tasks:
-    - name: Start YARN
+    - name: Stop HDFS
       become: true
-      become_user: yarn
-      command: "bin/yarn --daemon start nodemanager"
+      become_user: hdfs
+      command: "bin/hdfs --daemon stop datanode"
       args:
         chdir: /opt/hadoop
 
-- name: (7/7) - Start MapReduce JobHistory Server
+- name: (7/11) - Enable ans Start HDFS daemon (NameNode)
   hosts: hadoop_namenode
   tasks:
-    - name: Start MapReduce JobHistory Server
+    - name: Enable and start HDFS service
       become: true
-      become_user: mapred
-      command: "bin/mapred --daemon start historyserver"
-      args:
-        chdir: /opt/hadoop
+      systemd:
+        name: hadoop-namenode
+        enabled: true
+        state: started
+
+- name: (8/11) - Enable ans Start HDFS daemon (DataNode)
+  hosts: hadoop_datanode
+  tasks:
+    - name: Enable and start HDFS service
+      become: true
+      systemd:
+        name: hadoop-datanode
+        enabled: true
+        state: started
+
+- name: (9/11) - Enable and Start YARN (ResourceManager)
+  hosts: hadoop_namenode
+  tasks:
+    - name: Enable and start YARN service
+      become: true
+      systemd:
+        name: hadoop-resourcemanager
+        enabled: true
+        state: started
+
+- name: (10/11) - Enable and Start YARN (NodeManager)
+  hosts: hadoop_datanode
+  tasks:
+    - name: Enable and start YARN service
+      become: true
+      systemd:
+        name: hadoop-nodemanager
+        enabled: true
+        state: started
+
+- name: (11/11) - Enable and Start MapReduce (HistoryServer)
+  hosts: hadoop_namenode
+  tasks:
+    - name: Enable and start MapReduce service
+      become: true
+      systemd:
+        name: hadoop-historyserver
+        enabled: true
+        state: started
