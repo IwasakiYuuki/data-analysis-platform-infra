@@ -1,0 +1,98 @@
+- name: Check if Hive directory exists
+  ansible.builtin.stat:
+    path: /opt/hive
+  register: hive_dir
+
+- name: Check if Hive archive exists on control node
+  ansible.builtin.stat:
+    path: "/tmp/{{ hive_archive }}"
+  register: hive_archive_file
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Download Hive archive file to control node
+  get_url:
+    url: "{{ hive_url }}"
+    dest: "/tmp/{{ hive_archive }}"
+    timeout: 300
+  when: not hive_archive_file.stat.exists
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Copy Hive archive file to remote nodes
+  copy:
+    src: "/tmp/{{ hive_archive }}"
+    dest: "/tmp/{{ hive_archive }}"
+  when: not hive_dir.stat.exists
+
+- name: Unarchive the file
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ hive_archive }}"
+    dest: "/opt"
+    creates: "/opt/{{ hive_archive | replace('.tar.gz', '') }}"
+    remote_src: yes
+  when: not hive_dir.stat.exists
+
+- name: Create a symbolic link
+  file:
+    src: "/opt/{{ hive_archive | replace('.tar.gz', '') }}"
+    dest: "/opt/hive"
+    state: "link"
+  when: not hive_dir.stat.exists
+
+- name: Remove unarchive file
+  file:
+    path: /tmp/{{ hive_archive }}
+    state: absent
+  when: not hive_dir.stat.exists
+
+- name: Copy setting files to hive conf dir
+  template:
+    src: "hive-site.xml.j2"
+    dest: "/opt/hive/conf/hive-site.xml"
+
+- name: Copy a keytab file
+  copy:
+    src: hive.service.keytab
+    dest: /etc/security/keytab/hive.service.keytab
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Add /opt/hive/bin to global PATH in /etc/profile.d
+  ansible.builtin.file:
+    path: /etc/profile.d/hive.sh
+    state: touch
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Set HIVE_HOME in /etc/profile.d
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/hive.sh
+    line: 'export HIVE_HOME=/opt/hive'
+    state: present
+    create: yes
+
+- name: Copy hiveserver2.service file
+  copy:
+    src: "hiveserver2.service"
+    dest: /etc/systemd/system/hiveserver2.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Ensure /opt/hive/bin is in PATH
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/hive.sh
+    line: 'export PATH=$HIVE_HOME/bin:$PATH'
+    state: present
+    create: yes
+
+- name: Downlaod JDBC PostgreSQL Driver
+  wget:
+    url: "{{ jdbc_driver_url }}"
+    dest: "/opt/hive/lib/postgresql-{{ jdbc_driver_version }}.jar"
+  when: not hive_dir.stat.exists

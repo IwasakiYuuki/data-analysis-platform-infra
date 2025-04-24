@@ -1,4 +1,4 @@
-- name: Install Hadoop & Spark cluster
+- name: Install Hadoop cluster
   hosts:
     - hadoop_namenode
     - hadoop_datanode
@@ -8,6 +8,12 @@
     - java
     - hadoop
     - spark
+
+- name: Install Hive
+  hosts: hadoop_namenode
+  become: true
+  roles:
+    - hive
 
 - name: Install Airflow
   hosts: airflow

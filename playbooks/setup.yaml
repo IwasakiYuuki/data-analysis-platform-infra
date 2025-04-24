@@ -1,4 +1,4 @@
-- name: (1/11) - Format NameNode
+- name: (1/13) - Format NameNode
   hosts: hadoop_namenode
   tasks:
     - name: Format HDFS
@@ -8,7 +8,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (2/11) - Start HDFS (NameNode)
+- name: (2/13) - Start HDFS (NameNode)
   hosts: hadoop_namenode
   tasks:
     - name: Start HDFS
@@ -18,7 +18,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (3/11) - Start HDFS (DataNode)
+- name: (3/13) - Start HDFS (DataNode)
   hosts: hadoop_datanode
   tasks:
     - name: Start HDFS
@@ -28,7 +28,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (4/11) - Init HDFS directories
+- name: (4/13) - Init HDFS directories
   hosts: hadoop_namenode
   become: true
   become_user: hdfs
@@ -87,7 +87,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (5/11) - Stop HDFS (NameNode)
+- name: (5/13) - Stop HDFS (NameNode)
   hosts: hadoop_namenode
   tasks:
     - name: Stop HDFS
@@ -97,7 +97,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (6/11) - Stop HDFS (DataNode)
+- name: (6/13) - Stop HDFS (DataNode)
   hosts: hadoop_datanode
   tasks:
     - name: Stop HDFS
@@ -107,7 +107,7 @@
       args:
         chdir: /opt/hadoop
 
-- name: (7/11) - Enable ans Start HDFS daemon (NameNode)
+- name: (7/13) - Enable ans Start HDFS daemon (NameNode)
   hosts: hadoop_namenode
   tasks:
     - name: Enable and start HDFS service
@@ -117,7 +117,7 @@
         enabled: true
         state: started
 
-- name: (8/11) - Enable ans Start HDFS daemon (DataNode)
+- name: (8/13) - Enable ans Start HDFS daemon (DataNode)
   hosts: hadoop_datanode
   tasks:
     - name: Enable and start HDFS service
@@ -127,7 +127,7 @@
         enabled: true
         state: started
 
-- name: (9/11) - Enable and Start YARN (ResourceManager)
+- name: (9/13) - Enable and Start YARN (ResourceManager)
   hosts: hadoop_namenode
   tasks:
     - name: Enable and start YARN service
@@ -137,7 +137,7 @@
         enabled: true
         state: started
 
-- name: (10/11) - Enable and Start YARN (NodeManager)
+- name: (10/13) - Enable and Start YARN (NodeManager)
   hosts: hadoop_datanode
   tasks:
     - name: Enable and start YARN service
@@ -147,12 +147,32 @@
         enabled: true
         state: started
 
-- name: (11/11) - Enable and Start MapReduce (HistoryServer)
+- name: (11/13) - Enable and Start MapReduce (HistoryServer)
   hosts: hadoop_namenode
   tasks:
     - name: Enable and start MapReduce service
       become: true
       systemd:
         name: hadoop-historyserver
+        enabled: true
+        state: started
+
+- name: (12/13) - Init schema for Hive Metastore
+  hosts: hadoop_namenode
+  become: true
+  tasks:
+    - name: Init schema for Hive Metastore
+      shell: |
+        bin/schematool -dbType postgres -initSchema
+      args:
+        chdir: /opt/hive
+
+- name: (13/13) - Enable and Start Hiveserver2
+  hosts: hadoop_namenode
+  tasks:
+    - name: Enable and start Hiveserver2 service
+      become: true
+      systemd:
+        name: hiveserver2
         enabled: true
         state: started

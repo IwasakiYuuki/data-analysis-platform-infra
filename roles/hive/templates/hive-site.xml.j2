@@ -1,0 +1,73 @@
+<configuration>
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:postgresql://{{ groups['hadoop_namenode'][0] }}:5432/hive_metastore</value>
+    <description>JDBC connect string for a JDBC metastore</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.postgresql.Driver</value>
+    <description>Driver class name for a JDBC metastore</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hive</value>
+    <description>Username to use against metastore database</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>password</value>
+    <description>Password to use against metastore database</description>
+  </property>
+
+  <property>
+    <name>hive.server2.authentication</name>
+    <value>KERBEROS</value>
+    <description>Authentication method for HiveServer2</description>
+  </property>
+
+  <property>
+    <name>hive.server2.authentication.kerberos.keytab</name>
+    <value>/etc/security/keytab/hive.service.keytab</value>
+    <description>Kerberos keytab file for server principal</description>
+  </property>
+
+  <property>
+    <name>hive.server2.authentication.kerberos.principal</name>
+    <value>hive/hadoop-namenode1.home@HOME</value>
+    <description>Kerberos server principal</description>
+  </property>
+
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>false</value>
+    <description>
+      Setting this property to true will have HiveServer2 execute
+      Hive operations as the user making the calls to it.
+    </description>
+  </property>
+
+  <property>
+    <name>hive.metastore.db.type</name>
+    <value>postgres</value>
+    <description>
+      Expects one of [derby, oracle, mysql, mssql, postgres].
+      Type of database used by the metastore. Information schema &amp; JDBCStorageHandler depend on it.
+    </description>
+  </property>
+
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>/data/warehouse/hive</value>
+    <description>location of default database for the warehouse</description>
+  </property>
+
+  <property>
+    <name>hive.auto.convert.join</name>
+    <value>false</value>
+    <description>Whether Hive enables the optimization about converting common join into mapjoin based on the input file size</description>
+  </property>
+</configuration>

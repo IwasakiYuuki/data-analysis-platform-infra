@@ -29,6 +29,9 @@
 - name: Install Airflow hdfs extension with pip
   command: "{{ airflow_venv }}/bin/pip install apache-airflow[hdfs]"
 
+- name: Install Airflow hive extension with pip
+  command: "{{ airflow_venv }}/bin/pip install apache-airflow-providers-apache-hive=={{ hive_extension_version }}"
+
 - name: Create Airflow directory
   file:
     path: "{{ ansible_env.HOME }}/airflow"

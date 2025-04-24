@@ -1,0 +1,6 @@
+hive_version: "4.0.1"
+hive_archive: "apache-hive-{{ hive_version }}-bin.tar.gz"
+hive_url_prefix: "https://dlcdn.apache.org/hive/hive-{{ hive_version }}"
+hive_url: "{{ hive_url_prefix }}/{{ hive_archive }}"
+jdbc_driver_version: "42.7.5"
+jdbc_driver_url: "https://jdbc.postgresql.org/download/postgresql-{{ jdbc_driver_version }}.jar"
