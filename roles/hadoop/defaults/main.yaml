@@ -75,7 +75,11 @@ yarn_nodemanager_aux_services: mapreduce_shuffle
 yarn_nodemanager_aux_services_mapreduce_shuffle_class: org.apache.hadoop.mapred.ShuffleHandler
 yarn_nodemanager_resource_memory_mb: 24576
 yarn_nodemanager_resource_cpu_vcores: 8
-
+yarn_log_aggregation_enable: true
+yarn_nodemanager_remote_app_log_dir: /tmp/logs/yarn
+yarn_nodemanager_remote_app_log_dir_suffix: logs
+yarn_log_aggregation_retain_seconds: 1296000
+yarn_log_aggregation_retain_check_interval_seconds: 86400
 
 # mapred-site.xml
 mapreduce_framework_name: yarn
