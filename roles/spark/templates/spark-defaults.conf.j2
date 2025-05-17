@@ -25,3 +25,9 @@
 # spark.serializer                 org.apache.spark.serializer.KryoSerializer
 # spark.driver.memory              5g
 # spark.executor.extraJavaOptions  -XX:+PrintGCDetails -Dkey=value -Dnumbers="one two three"
+
+# TODO: Split versions into separate files
+spark.jars.packages             org.apache.spark:spark-hive_2.12:{{ spark_version }}
+spark.jars.excludes             org.apache.avro:avro
+spark.driver.extraClassPath     /opt/hive/lib/postgresql-42.7.5.jar:/opt/hive/lib/hive-*
+spark.executor.extraClassPath   /opt/hive/lib/postgresql-42.7.5.jar:/opt/hive/lib/hive-*
