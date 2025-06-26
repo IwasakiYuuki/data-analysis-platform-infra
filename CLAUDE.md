@@ -124,3 +124,55 @@ sudo journalctl -u hadoop-historyserver
 - 秘密情報はsecrets.yamlに記載し、テンプレートファイルは.templateとして管理
 - Docker環境では`ansible_connection=docker`を使用
 - keytabファイルやSSL証明書は事前に準備が必要
+
+## Kubernetes移行時の検討事項
+
+### データローカリティの実現方式
+
+#### 1. DaemonSet + HostNetwork方式（推奨）
+- **利点**: 完全なデータローカリティ、DNS整合性
+- **構成**: HostNetwork使用、HostPath永続化
+- **DataNode識別**: ノード名=DNS名で一貫性保証
+
+#### 2. StatefulSet + Local PV方式
+- **利点**: 動的スケーリング対応
+- **構成**: Local Volume Provisioner、WaitForFirstConsumer
+- **注意**: 再配置時のデータローカリティ考慮必要
+
+#### 3. 通常のStatefulSet + PVC方式
+- **注意**: データローカリティが失われる可能性
+- **問題**: PodとPVCが異なるノードに配置される場合あり
+
+## 開発環境（Kind）設定方針
+
+### 基本構成
+- **ノード構成**: Control-plane 1台 + Worker 3台（本番環境と同じトポロジー）
+- **リソース**: Control-plane 4GB/2core, Worker 1GB/1core
+- **データ永続化**: 各ノード10GB程度のテスト用PVC
+
+### 設計決定事項
+1. **コンポーネント配置**
+   - NameNode: Control-planeに配置（taint削除）
+   - ResourceManager: Control-planeに配置
+   - JupyterHub/Airflow: Control-planeに配置
+   - DataNode: 各Workerに1つずつ（1Node=1DataNode）
+
+2. **ネットワーク設定**
+   - CNI: kindnet（デフォルト）
+   - ホスト名: 固定ホスト名を使用予定
+   - 外部アクセス: extraPortMappingsでブラウザアクセス対応
+
+3. **開発体験**
+   - Skaffoldを選択肢として検討
+   - ファイル変更の自動検知・ビルド・デプロイ
+   - 統合ログ表示機能
+
+### Kind設定上の注意点
+- featureGates設定でkubelet起動に問題が発生する場合があるため、不要な機能は無効化
+- リソース制限はDocker側で設定（Memory: 8GB, CPU: 6core推奨）
+
+### 本番環境との一貫性
+- **アーキテクチャ**: 同じノード数・役割分担
+- **設定ファイル**: Hadoop設定ファイルの共通化
+- **デプロイ方法**: 同じkubectl apply方式
+- **セキュリティ**: Kerberos認証、SSL/TLS設定

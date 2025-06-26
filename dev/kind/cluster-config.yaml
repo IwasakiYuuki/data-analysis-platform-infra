@@ -1,0 +1,103 @@
+# Kind cluster configuration for Data Analysis Platform
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: data-platform
+
+# Kubernetes version
+# 最新の安定版を使用（必要に応じて固定）
+# image: kindest/node:v1.28.0
+
+# Cluster nodes configuration
+nodes:
+# Control plane node
+- role: control-plane
+  labels:
+    node-type: service
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload=service,node-type=service,ingress-ready=true"
+      taints: []
+  # Port mappings for accessing services from host
+  extraPortMappings:
+  # HTTP Ingress
+  - containerPort: 80
+    hostPort: 8080
+    protocol: TCP
+  # HTTPS Ingress
+  - containerPort: 443
+    hostPort: 8443
+    protocol: TCP
+  # Hadoop NameNode UI
+  - containerPort: 9871
+    hostPort: 9871
+    protocol: TCP
+  # Hadoop ResourceManager UI
+  - containerPort: 8088
+    hostPort: 8088
+    protocol: TCP
+  # JupyterHub
+  - containerPort: 8000
+    hostPort: 8000
+    protocol: TCP
+  # Airflow UI
+  - containerPort: 8081
+    hostPort: 8081
+    protocol: TCP
+  # Spark History Server
+  - containerPort: 18080
+    hostPort: 18080
+    protocol: TCP
+
+# Worker nodes for distributed processing
+- role: worker
+  labels:
+    node-type: compute
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload=hadoop,node-type=compute"
+
+- role: worker
+  labels:
+    node-type: compute
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload=hadoop,node-type=compute"
+
+# Additional worker node for JupyterHub/Airflow
+- role: worker
+  labels:
+    node-type: compute
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload=hadoop,node-type=compute"
+
+# Networking configuration
+networking:
+  # Disable default CNI, we'll install our own
+  disableDefaultCNI: false
+  # Pod subnet (adjust if conflicts with your network)
+  podSubnet: "10.244.0.0/16"
+  # Service subnet
+  serviceSubnet: "10.96.0.0/12"
+
+# Runtime configuration
+runtimeConfig:
+  "api/all": "true"
+
+# Container runtime configuration
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
+    endpoint = ["http://localhost:5000"]

@@ -1,0 +1,85 @@
+# Docker Compose for development dependencies
+# 開発時にKubernetesクラスター外で必要な依存サービス
+
+version: '3.8'
+
+services:
+  # PostgreSQL for Hive Metastore
+  postgres:
+    image: postgres:13
+    container_name: dev-postgres
+    environment:
+      POSTGRES_DB: hive_metastore
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - dev-network
+
+  # MinIO for S3-compatible storage (オプション)
+  # データローカリティ重視の場合は使用しない
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: dev-minio
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ACCESS_KEY: minioaccess
+  #     MINIO_SECRET_KEY: miniosecret
+  #     MINIO_REGION: us-east-1
+  #   ports:
+  #     - "9000:9000"   # API
+  #     - "9001:9001"   # Console
+  #   volumes:
+  #     - minio_data:/data
+  #   networks:
+  #     - dev-network
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: dev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dev-network
+
+  # Kerberos KDC (for development)
+  kdc:
+    image: gcavalcante8808/krb5-server
+    container_name: dev-kdc
+    hostname: kdc.home
+    environment:
+      KRB5_REALM: HOME
+      KRB5_KDC: kdc.home
+      KRB5_PASS: password
+    ports:
+      - "88:88"
+      - "464:464"
+      - "749:749"
+    volumes:
+      - kdc_data:/var/lib/krb5kdc
+      - ./kerberos/krb5.conf:/etc/krb5.conf
+    networks:
+      dev-network:
+        aliases:
+          - kdc.home
+
+volumes:
+  postgres_data:
+  # minio_data:  # MinIO無効化
+  redis_data:
+  kdc_data:
+
+networks:
+  dev-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
