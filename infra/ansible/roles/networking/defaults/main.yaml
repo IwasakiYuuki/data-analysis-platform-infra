@@ -1,0 +1,19 @@
+# CNI configuration
+cni_provider: "calico"
+calico_version: "v3.28.0"
+flannel_version: "v0.22.0"
+
+# Calico configuration
+calico_pod_cidr: "10.244.0.0/16"
+calico_operator_version: "v1.30.4"
+calico_ippool_block_size: 26
+calico_nat_outgoing: true
+calico_ip_detection_method: "first-found"
+calico_ipv4pool_encapsulation: "IPIPCrossSubnet"
+
+# Flannel configuration  
+flannel_backend_type: "vxlan"
+flannel_network: "10.244.0.0/16"
+
+# Network policies
+enable_network_policies: true

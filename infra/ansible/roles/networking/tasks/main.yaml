@@ -1,0 +1,31 @@
+---
+- name: Wait for Kubernetes API to be ready
+  uri:
+    url: "https://{{ ansible_default_ipv4.address }}:6443/healthz"
+    method: GET
+    validate_certs: no
+  register: k8s_api_health
+  until: k8s_api_health.status == 200
+  retries: 30
+  delay: 10
+  when: kubernetes_master | bool
+
+- name: Install CNI provider
+  include_tasks: "{{ cni_provider }}.yaml"
+  when: kubernetes_master | bool
+
+- name: Wait for CNI pods to be ready
+  shell: kubectl get pods -n kube-system -l k8s-app={{ cni_provider }} -o jsonpath='{.items[*].status.phase}'
+  register: cni_pods
+  until: cni_pods.stdout.split()|reject('equalto','Running')|list|length == 0
+  retries: 30
+  delay: 10
+  when: kubernetes_master | bool
+
+- name: Verify all nodes are ready
+  shell: kubectl get nodes --no-headers | awk '{print $2}' | grep -v Ready || true
+  register: not_ready_nodes
+  until: not_ready_nodes.stdout == ""
+  retries: 30
+  delay: 10
+  when: kubernetes_master | bool

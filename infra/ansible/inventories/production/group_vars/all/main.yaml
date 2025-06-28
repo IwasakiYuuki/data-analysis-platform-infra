@@ -1,0 +1,68 @@
+# Production Environment Variables
+# 本番環境用の共通変数設定
+
+# 環境識別
+environment: production
+cluster_domain: data-platform.local
+
+# Kubernetes設定
+kubernetes_version: "1.28"                    # メジャー.マイナー（リポジトリ用）
+kubernetes_full_version: "1.28.15-1.1"       # パッケージ完全版（apt用）
+kubernetes_semantic_version: "1.28.15"       # セマンティック版（kubeadm用）
+kubernetes_pod_subnet: "10.244.0.0/16"
+kubernetes_service_subnet: "10.96.0.0/12"
+kubernetes_cluster_name: "data-platform-prod"
+kubernetes_api_server_port: 6443
+
+# kubeadm設定
+kubeadm_config_api_version: "kubeadm.k8s.io/v1beta3"
+kubeadm_init_timeout: 600  # 秒単位（10分）
+
+# CNI設定
+cni_provider: "calico"
+calico_version: "v3.28.0"
+calico_pod_cidr: "10.244.0.0/16"
+calico_ippool_block_size: 26
+calico_nat_outgoing: true
+calico_ip_detection_method: "first-found"
+calico_ipv4pool_encapsulation: "IPIPCrossSubnet"
+
+# Container Runtime設定
+docker_version: "20.10"
+containerd_version: "1.6.21"
+
+# セキュリティ設定
+enable_network_policies: true
+enable_rbac: true
+
+# リソース設定（本番環境用）
+default_resource_limits:
+  cpu: "4"
+  memory: "8Gi"
+default_resource_requests:
+  cpu: "1"  
+  memory: "2Gi"
+
+# ストレージ設定
+storage_provisioner: "local-path"
+default_storage_class: "local-path"
+
+# 監視・ログ設定
+enable_monitoring: true
+enable_logging: true
+
+# バックアップ設定
+backup_enabled: true
+backup_schedule: "0 2 * * *"  # 毎日2:00AM
+
+# High Availability設定
+ha_enabled: false  # 単一マスター構成の場合はfalse
+etcd_backup_enabled: true
+
+# DNS設定
+cluster_dns_ip: "10.96.0.10"
+cluster_dns_domain: "cluster.local"
+
+# 証明書設定
+cert_validity_days: 365
+auto_renew_certs: true

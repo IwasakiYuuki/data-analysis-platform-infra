@@ -1,0 +1,37 @@
+# Kubernetes Master Node Variables
+# マスターノード固有の設定
+
+# ノード役割
+kubernetes_master: true
+kubernetes_worker: false
+
+# マスターノード固有設定
+apiserver_bind_port: "{{ kubernetes_api_server_port }}"
+apiserver_advertise_address: "{{ ansible_default_ipv4.address }}"
+
+# etcd設定
+etcd_data_dir: "/var/lib/etcd"
+etcd_backup_dir: "/opt/etcd-backup"
+
+# Control Plane設定
+control_plane_endpoint: "{{ ansible_default_ipv4.address }}:{{ kubernetes_api_server_port }}"
+
+# kubeconfig設定
+kubeconfig_path: "/etc/kubernetes/admin.conf"
+kubectl_config_dir: "/home/{{ ansible_user }}/.kube"
+
+# マスターノード用リソース設定
+node_resources:
+  cpu_limit: "4"
+  memory_limit: "8Gi"
+  cpu_request: "2"
+  memory_request: "4Gi"
+
+# Taints（マスターノードでのPod実行制御）
+master_node_taints:
+  - key: "node-role.kubernetes.io/control-plane"
+    value: ""
+    effect: "NoSchedule"
+
+# マスターノードでワークロードを実行する場合はtrue
+allow_workloads_on_master: true

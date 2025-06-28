@@ -1,0 +1,25 @@
+# Kubernetes Cluster Inventory for Production Environment
+# 本番環境用のKubernetesクラスターインベントリ
+# 
+# 使用方法:
+# ansible-playbook -i inventories/production/hosts playbooks/k8s-install.yaml
+# ansible-playbook -i inventories/production/hosts playbooks/k8s-setup.yaml
+
+[k8s_master]
+# Kubernetes Master Node
+hadoop-namenode1.home ansible_ssh_user=ubuntu
+
+[k8s_worker]
+# Kubernetes Worker Nodes  
+hadoop-datanode1.home ansible_ssh_user=ubuntu
+hadoop-datanode2.home ansible_ssh_user=ubuntu
+hadoop-datanode3.home ansible_ssh_user=ubuntu
+
+[k8s_cluster:children]
+k8s_master
+k8s_worker
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/id_ed25519
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+environment=production

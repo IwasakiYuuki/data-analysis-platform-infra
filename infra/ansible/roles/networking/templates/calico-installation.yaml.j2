@@ -1,0 +1,26 @@
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  calicoNetwork:
+    ipPools:
+    - blockSize: {{ calico_ippool_block_size }}
+      cidr: {{ calico_pod_cidr }}
+      encapsulation: {{ calico_ipv4pool_encapsulation }}
+      natOutgoing: {{ calico_nat_outgoing | ternary('Enabled', 'Disabled') }}
+      nodeSelector: all()
+    nodeAddressAutodetectionV4:
+{% if calico_ip_detection_method == "first-found" %}
+      firstFound: true
+{% else %}
+      interface: {{ calico_ip_detection_method }}
+{% endif %}
+{% if enable_network_policies %}
+---
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}
+{% endif %}

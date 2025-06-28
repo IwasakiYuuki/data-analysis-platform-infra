@@ -1,0 +1,79 @@
+---
+- name: Check if Kubernetes master is already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_init_stat
+
+- name: Generate kubeadm configuration
+  template:
+    src: kubeadm-config.yaml.j2
+    dest: /tmp/kubeadm-config.yaml
+    mode: '0644'
+  when: not k8s_init_stat.stat.exists
+
+- name: Initialize Kubernetes master
+  shell: kubeadm init --config=/tmp/kubeadm-config.yaml
+  register: kubeadm_init_result
+  when: not k8s_init_stat.stat.exists
+  timeout: "{{ kubeadm_init_timeout }}"
+
+- name: Save kubeadm init output
+  copy:
+    content: "{{ kubeadm_init_result.stdout }}"
+    dest: /tmp/kubeadm-init.log
+    mode: '0644'
+  when: kubeadm_init_result is defined and kubeadm_init_result.stdout is defined
+
+- name: Check if join command file exists
+  stat:
+    path: /tmp/kubernetes-join-command
+  register: join_command_stat
+
+- name: Extract join command from kubeadm init output
+  shell: kubeadm token create --print-join-command
+  register: kubeadm_join_command
+  when: kubernetes_master | bool and not join_command_stat.stat.exists
+
+- name: Save join command for workers
+  copy:
+    content: "{{ kubeadm_join_command.stdout }}"
+    dest: /tmp/kubernetes-join-command
+    mode: '0644'
+  when: kubeadm_join_command is defined and kubeadm_join_command.stdout is defined
+
+- name: Create .kube directory for root
+  file:
+    path: /root/.kube
+    state: directory
+    mode: '0755'
+
+- name: Copy admin.conf to root .kube/config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: yes
+    mode: '0600'
+    owner: root
+    group: root
+
+- name: Wait for all control-plane pods to be ready
+  shell: kubectl get pods --namespace=kube-system --selector=tier=control-plane --output=jsonpath='{.items[*].status.phase}'
+  register: control_plane_pods
+  until: control_plane_pods.stdout.split()|reject('equalto','Running')|list|length == 0
+  retries: 30
+  delay: 10
+  when: not k8s_init_stat.stat.exists
+
+- name: Remove taint from master node to allow workload scheduling
+  shell: kubectl taint nodes {{ ansible_hostname }} node-role.kubernetes.io/control-plane:NoSchedule- || true
+  when: allow_workloads_on_master | default(false) | bool
+
+- name: Verify master node taint status
+  shell: kubectl describe node {{ ansible_hostname }} | grep Taints || echo "No taints"
+  register: node_taints
+  when: allow_workloads_on_master | default(false) | bool
+
+- name: Display master node taint information
+  debug:
+    msg: "Master node taints: {{ node_taints.stdout }}"
+  when: allow_workloads_on_master | default(false) | bool

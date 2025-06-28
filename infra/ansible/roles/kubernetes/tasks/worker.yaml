@@ -1,0 +1,22 @@
+---
+- name: Check if node is already joined to cluster
+  shell: kubectl get nodes {{ ansible_hostname }} --ignore-not-found=true
+  register: node_status
+  delegate_to: "{{ groups['k8s_master'][0] }}"
+  failed_when: false
+
+- name: Copy join command from master
+  slurp:
+    src: /tmp/kubernetes-join-command
+  register: join_command_b64
+  delegate_to: "{{ groups['k8s_master'][0] }}"
+  when: node_status.stdout == ""
+
+- name: Join worker node to cluster
+  shell: "{{ join_command_b64.content | b64decode | trim }}"
+  when: node_status.stdout == "" and join_command_b64 is defined
+
+- name: Label worker nodes
+  shell: kubectl label node {{ ansible_hostname }} node-role.kubernetes.io/worker=worker --overwrite=true
+  delegate_to: "{{ groups['k8s_master'][0] }}"
+  when: kubernetes_worker | bool

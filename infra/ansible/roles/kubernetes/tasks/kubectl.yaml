@@ -1,0 +1,45 @@
+---
+- name: Create .kube directory for user
+  file:
+    path: "{{ kubectl_config_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Copy admin.conf to user .kube/config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ kubectl_config_dir }}/config"
+    remote_src: yes
+    mode: '0600'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  when: kubernetes_master | bool
+
+- name: Copy kubeconfig from master to worker
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: /tmp/admin.conf
+    flat: yes
+  delegate_to: "{{ groups['k8s_master'][0] }}"
+  when: kubernetes_worker | bool
+
+- name: Copy kubeconfig to worker nodes
+  copy:
+    src: /tmp/admin.conf
+    dest: "{{ kubectl_config_dir }}/config"
+    mode: '0600'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  when: kubernetes_worker | bool
+
+- name: Install kubectl bash completion
+  shell: kubectl completion bash > /etc/bash_completion.d/kubectl
+  when: kubernetes_master | bool
+
+- name: Add kubectl alias to bashrc
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: "alias k=kubectl"
+    create: yes

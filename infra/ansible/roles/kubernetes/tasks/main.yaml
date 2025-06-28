@@ -1,0 +1,14 @@
+---
+- name: Include common tasks
+  include_tasks: common.yaml
+
+- name: Include master tasks
+  include_tasks: master.yaml
+  when: kubernetes_master | bool
+
+- name: Include worker tasks
+  include_tasks: worker.yaml
+  when: kubernetes_worker | bool
+
+- name: Include kubectl configuration
+  include_tasks: kubectl.yaml

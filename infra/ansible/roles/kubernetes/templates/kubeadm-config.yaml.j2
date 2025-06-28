@@ -1,0 +1,40 @@
+apiVersion: {{ kubeadm_config_api_version }}
+kind: ClusterConfiguration
+kubernetesVersion: v{{ kubernetes_semantic_version }}
+clusterName: {{ kubernetes_cluster_name }}
+controlPlaneEndpoint: "{{ ansible_default_ipv4.address }}:{{ kubernetes_api_server_port }}"
+networking:
+  serviceSubnet: {{ kubernetes_service_subnet }}
+  podSubnet: {{ kubernetes_pod_subnet }}
+  dnsDomain: "cluster.local"
+apiServer:
+  certSANs:
+    - {{ ansible_default_ipv4.address }}
+    - {{ ansible_hostname }}
+    - {{ ansible_fqdn }}
+    - localhost
+    - 127.0.0.1
+controllerManager: {}
+scheduler: {}
+etcd:
+  local:
+    dataDir: "/var/lib/etcd"
+---
+apiVersion: {{ kubeadm_config_api_version }}
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: {{ ansible_default_ipv4.address }}
+  bindPort: {{ kubernetes_api_server_port }}
+nodeRegistration:
+  criSocket: unix:///var/run/containerd/containerd.sock
+  kubeletExtraArgs:
+    cgroup-driver: systemd
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
+failSwapOn: false
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+mode: "iptables"

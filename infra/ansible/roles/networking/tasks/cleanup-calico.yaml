@@ -1,0 +1,76 @@
+---
+- name: Cleanup Calico/Tigera Installation
+  block:
+    - name: Delete Installation resources
+      shell: kubectl delete installation --all --all-namespaces --ignore-not-found=true
+      ignore_errors: yes
+
+    - name: Delete APIServer resources
+      shell: kubectl delete apiserver --all --ignore-not-found=true
+      ignore_errors: yes
+
+    - name: Delete Calico DaemonSets
+      shell: kubectl delete daemonset -A -l k8s-app=calico-node --ignore-not-found=true
+      ignore_errors: yes
+
+    - name: Delete Calico Deployments
+      shell: kubectl delete deployment -A -l k8s-app=calico-kube-controllers --ignore-not-found=true
+      ignore_errors: yes
+
+    - name: Delete Tigera Operator Deployments
+      shell: kubectl delete deployment -A -l k8s-app=tigera-operator --ignore-not-found=true
+      ignore_errors: yes
+
+    - name: Delete Calico/Tigera Namespaces
+      shell: |
+        kubectl delete namespace calico-system --ignore-not-found=true
+        kubectl delete namespace tigera-operator --ignore-not-found=true
+        kubectl delete namespace calico-apiserver --ignore-not-found=true
+      ignore_errors: yes
+
+    - name: Delete Calico CRDs
+      shell: |
+        kubectl get crd | grep -E "(calico|tigera)" | awk '{print $1}' | xargs -r kubectl delete crd --ignore-not-found=true
+      ignore_errors: yes
+
+    - name: Wait for resource cleanup
+      pause:
+        seconds: 30
+
+    - name: Verify cleanup completion
+      shell: |
+        echo "=== Remaining Calico/Tigera Resources ==="
+        kubectl get pods -A | grep -E "(calico|tigera)" || echo "No pods found"
+        kubectl get namespaces | grep -E "(calico|tigera)" || echo "No namespaces found"
+        kubectl get crd | grep -E "(calico|tigera)" || echo "No CRDs found"
+      register: cleanup_verification
+
+    - name: Show cleanup results
+      debug:
+        var: cleanup_verification.stdout_lines
+
+- name: Cleanup CNI configuration on nodes
+  block:
+    - name: Remove Calico CNI config files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/cni/net.d/10-calico.conflist
+        - /etc/cni/net.d/calico-kubeconfig
+      ignore_errors: yes
+
+    - name: Find and remove Calico CNI files
+      find:
+        paths: /etc/cni/net.d
+        patterns: "*calico*,*tigera*"
+      register: calico_cni_files
+
+    - name: Delete found Calico CNI files
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ calico_cni_files.files }}"
+      ignore_errors: yes
+
+  when: inventory_hostname in groups['k8s_cluster']

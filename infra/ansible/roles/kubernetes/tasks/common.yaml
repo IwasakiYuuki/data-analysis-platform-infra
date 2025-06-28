@@ -1,0 +1,75 @@
+---
+- name: Create keyrings directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_os_family == "Debian"
+
+- name: Add Kubernetes GPG key (modern method)
+  get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+
+- name: Add Kubernetes repository (modern method)
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/ /"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Update apt packages after adding repo
+  apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+# - name: Check available Kubernetes versions
+#   shell: apt-cache madison kubelet | head -5
+#   register: available_kubelet_versions
+#   when: ansible_os_family == "Debian"
+#   failed_when: false
+
+# - name: Display available Kubernetes versions
+#   debug:
+#     msg: "Available kubelet versions: {{ available_kubelet_versions.stdout_lines }}"
+#   when: ansible_os_family == "Debian" and available_kubelet_versions.stdout_lines is defined
+
+- name: Install Kubernetes packages
+  apt:
+    name:
+      - "kubelet={{ kubernetes_full_version }}"
+      - "kubeadm={{ kubernetes_full_version }}"
+      - "kubectl={{ kubernetes_full_version }}"
+    state: present
+    allow_downgrade: yes
+  when: ansible_os_family == "Debian"
+
+- name: Hold Kubernetes packages
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+  when: ansible_os_family == "Debian"
+
+- name: Enable kubelet service
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
+
+- name: Create kubelet configuration directory
+  file:
+    path: /etc/systemd/system/kubelet.service.d
+    state: directory
+    mode: '0755'
+
+- name: Configure kubelet extra args
+  template:
+    src: 10-kubeadm.conf.j2
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    mode: '0644'
+  notify: reload systemd and restart kubelet

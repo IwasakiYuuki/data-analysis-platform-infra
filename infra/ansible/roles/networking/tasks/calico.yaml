@@ -1,0 +1,14 @@
+---
+- name: Install Tigera operator
+  shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/tigera-operator.yaml
+
+- name: Wait for Tigera operator to be ready
+  shell: kubectl wait --for=condition=Ready pods -l k8s-app=tigera-operator -n tigera-operator --timeout=300s
+
+- name: Generate Calico custom resources from template
+  template:
+    src: calico-installation.yaml.j2
+    dest: /tmp/calico-installation.yaml
+
+- name: Apply Calico custom resources
+  shell: kubectl apply -f /tmp/calico-installation.yaml

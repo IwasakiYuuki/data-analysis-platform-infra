@@ -1,0 +1,62 @@
+# Kubernetes Worker Node Variables
+# ワーカーノード固有の設定
+
+# ノード役割
+kubernetes_master: false
+kubernetes_worker: true
+
+# ワーカーノード固有設定
+node_role: "worker"
+
+# ノードラベル
+node_labels:
+  node-role.kubernetes.io/worker: "worker"
+  node-type: "data-platform"
+  environment: "{{ environment }}"
+
+# リソース設定（ワーカーノード用）
+node_resources:
+  cpu_limit: "8"
+  memory_limit: "16Gi"
+  cpu_request: "2"
+  memory_request: "4Gi"
+
+# ストレージ設定
+local_storage_path: "/opt/local-path-provisioner"
+local_storage_size: "100Gi"
+
+# データ配置設定（Hadoop用）
+data_directories:
+  - path: "/data/hadoop/hdfs"
+    owner: "1000"
+    group: "1000"
+    mode: "0755"
+  - path: "/data/hadoop/logs"
+    owner: "1000"
+    group: "1000"
+    mode: "0755"
+  - path: "/data/spark/work"
+    owner: "1000"
+    group: "1000"
+    mode: "0755"
+  - path: "/data/spark/logs"
+    owner: "1000"
+    group: "1000"
+    mode: "0755"
+
+# パフォーマンス設定
+kubelet_extra_args:
+  - "--max-pods=110"
+  - "--kube-reserved=cpu=200m,memory=256Mi"
+  - "--system-reserved=cpu=200m,memory=256Mi"
+  - "--eviction-hard=memory.available<500Mi,nodefs.available<10%"
+
+# セキュリティ設定
+security_context:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# ネットワーク設定
+pod_subnet_per_node: "/24"
+max_pods_per_node: 110

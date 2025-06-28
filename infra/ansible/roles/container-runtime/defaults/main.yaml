@@ -1,0 +1,19 @@
+# Container Runtime defaults (Ubuntu 24.04 compatible)
+docker_version: "24.0"
+docker_compose_version: "2.29.0"
+containerd_version: "1.6.28"
+
+# Docker configuration
+docker_daemon_json:
+  exec-opts:
+    - "native.cgroupdriver=systemd"
+  log-driver: "json-file"
+  log-opts:
+    max-size: "100m"
+    max-file: "3"
+  storage-driver: "overlay2"
+  storage-opts:
+    - "overlay2.override_kernel_check=true"
+
+# System configuration
+enable_cgroup_v2: false

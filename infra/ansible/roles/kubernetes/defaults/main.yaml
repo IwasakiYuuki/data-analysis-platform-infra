@@ -1,0 +1,23 @@
+# Kubernetes version
+kubernetes_version: "1.28"
+kubernetes_full_version: "1.28.15-1.1"
+
+# Kubernetes configuration
+kubernetes_pod_subnet: "10.244.0.0/16"
+kubernetes_service_subnet: "10.96.0.0/12"
+kubernetes_cluster_name: "data-platform"
+kubernetes_api_server_port: 6443
+
+# kubeadm configuration
+kubeadm_config_api_version: "kubeadm.k8s.io/v1beta3"
+kubeadm_init_timeout: 600
+
+# kubectl configuration
+kubectl_config_dir: "/home/{{ ansible_user }}/.kube"
+
+# CNI selection (calico, flannel, cilium)
+cni_provider: "calico"
+
+# Node roles
+kubernetes_master: false
+kubernetes_worker: false

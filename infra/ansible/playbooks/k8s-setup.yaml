@@ -1,0 +1,302 @@
+---
+- name: Setup Kubernetes Cluster for Data Platform
+  hosts: k8s_master
+  become: yes
+  gather_facts: yes
+  vars:
+    # 基本的なKubernetesコンポーネント
+    install_ingress_controller: true
+    install_cert_manager: true
+    install_metrics_server: true
+    install_storage_provisioner: true
+    
+    # Ingress Controller設定
+    ingress_controller: "nginx"  # nginx, traefik
+    ingress_nginx_version: "v1.8.1"
+    
+    # Cert-Manager設定
+    cert_manager_version: "v1.13.1"
+    
+    # Metrics Server設定
+    metrics_server_version: "v0.6.4"
+    
+    # Storage設定
+    storage_provisioner: "local-path"  # local-path, nfs
+    local_path_provisioner_version: "v0.0.24"
+    
+    # データ分析プラットフォーム用ネームスペース
+    platform_namespaces:
+      - name: hadoop
+        labels:
+          app.kubernetes.io/name: hadoop
+          app.kubernetes.io/part-of: data-platform
+      - name: spark
+        labels:
+          app.kubernetes.io/name: spark
+          app.kubernetes.io/part-of: data-platform
+      - name: jupyterhub
+        labels:
+          app.kubernetes.io/name: jupyterhub
+          app.kubernetes.io/part-of: data-platform
+      - name: airflow
+        labels:
+          app.kubernetes.io/name: airflow
+          app.kubernetes.io/part-of: data-platform
+      - name: monitoring
+        labels:
+          app.kubernetes.io/name: monitoring
+          app.kubernetes.io/part-of: data-platform
+
+  pre_tasks:
+    - name: Verify cluster is ready
+      shell: kubectl get nodes --no-headers
+      register: cluster_nodes
+      failed_when: cluster_nodes.stdout_lines | map('regex_search', 'NotReady') | select('string') | list | length > 0
+
+    - name: Display cluster information
+      debug:
+        msg:
+          - "Cluster Nodes: {{ cluster_nodes.stdout_lines | length }}"
+          - "Installing Components:"
+          - "  - Ingress Controller: {{ ingress_controller if install_ingress_controller else 'Skip' }}"
+          - "  - Cert-Manager: {{ 'Yes' if install_cert_manager else 'Skip' }}"
+          - "  - Metrics Server: {{ 'Yes' if install_metrics_server else 'Skip' }}"
+          - "  - Storage Provisioner: {{ storage_provisioner if install_storage_provisioner else 'Skip' }}"
+
+  tasks:
+    # ネームスペース作成
+    - name: Create platform namespaces
+      kubernetes.core.k8s:
+        name: "{{ item.name }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+        definition:
+          metadata:
+            labels: "{{ item.labels }}"
+      loop: "{{ platform_namespaces }}"
+      tags:
+        - namespaces
+
+    # Storage Provisioner
+    - name: Install Local Path Provisioner
+      block:
+        - name: Download Local Path Provisioner manifest
+          get_url:
+            url: "https://raw.githubusercontent.com/rancher/local-path-provisioner/{{ local_path_provisioner_version }}/deploy/local-path-storage.yaml"
+            dest: /tmp/local-path-storage.yaml
+            mode: '0644'
+
+        - name: Apply Local Path Provisioner
+          shell: kubectl apply -f /tmp/local-path-storage.yaml
+
+        - name: Set Local Path as default storage class
+          shell: kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+        - name: Wait for Local Path Provisioner to be ready
+          shell: kubectl get pods -n local-path-storage -l app=local-path-provisioner -o jsonpath='{.items[*].status.phase}'
+          register: provisioner_pods
+          until: provisioner_pods.stdout.split()|reject('equalto','Running')|list|length == 0
+          retries: 30
+          delay: 10
+      when: install_storage_provisioner and storage_provisioner == "local-path"
+      tags:
+        - storage
+
+    # Metrics Server
+    - name: Install Metrics Server
+      block:
+        - name: Download Metrics Server manifest
+          get_url:
+            url: "https://github.com/kubernetes-sigs/metrics-server/releases/download/{{ metrics_server_version }}/components.yaml"
+            dest: /tmp/metrics-server.yaml
+            mode: '0644'
+
+        - name: Patch Metrics Server for insecure TLS (development)
+          replace:
+            path: /tmp/metrics-server.yaml
+            regexp: '(- --cert-dir=/tmp)'
+            replace: '\1\n        - --kubelet-insecure-tls'
+
+        - name: Apply Metrics Server
+          shell: kubectl apply -f /tmp/metrics-server.yaml
+
+        - name: Wait for Metrics Server to be ready
+          shell: kubectl get pods -n kube-system -l k8s-app=metrics-server -o jsonpath='{.items[*].status.phase}'
+          register: metrics_pods
+          until: metrics_pods.stdout.split()|reject('equalto','Running')|list|length == 0
+          retries: 30
+          delay: 10
+      when: install_metrics_server
+      tags:
+        - metrics
+
+    # Ingress Controller (NGINX)
+    - name: Install NGINX Ingress Controller
+      block:
+        - name: Download NGINX Ingress Controller manifest
+          get_url:
+            url: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-{{ ingress_nginx_version }}/deploy/static/provider/baremetal/deploy.yaml"
+            dest: /tmp/ingress-nginx.yaml
+            mode: '0644'
+
+        - name: Apply NGINX Ingress Controller
+          shell: kubectl apply -f /tmp/ingress-nginx.yaml
+
+        - name: Wait for NGINX Ingress Controller to be ready
+          shell: kubectl get pods -n ingress-nginx -l app.kubernetes.io/component=controller -o jsonpath='{.items[*].status.phase}'
+          register: ingress_pods
+          until: ingress_pods.stdout.split()|reject('equalto','Running')|list|length == 0
+          retries: 60
+          delay: 10
+
+        - name: Get Ingress Controller NodePort
+          shell: kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}'
+          register: ingress_http_port
+
+        - name: Display Ingress Controller access information
+          debug:
+            msg:
+              - "NGINX Ingress Controller installed successfully"
+              - "HTTP NodePort: {{ ingress_http_port.stdout }}"
+              - "Access via: http://<node-ip>:{{ ingress_http_port.stdout }}"
+      when: install_ingress_controller and ingress_controller == "nginx"
+      tags:
+        - ingress
+
+    # Cert-Manager
+    - name: Install Cert-Manager
+      block:
+        - name: Download Cert-Manager manifest
+          get_url:
+            url: "https://github.com/cert-manager/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.yaml"
+            dest: /tmp/cert-manager.yaml
+            mode: '0644'
+
+        - name: Apply Cert-Manager
+          shell: kubectl apply -f /tmp/cert-manager.yaml
+
+        - name: Wait for Cert-Manager to be ready
+          shell: kubectl get pods -n cert-manager -o jsonpath='{.items[*].status.phase}'
+          register: certmanager_pods
+          until: certmanager_pods.stdout.split()|reject('equalto','Running')|list|length == 0
+          retries: 60
+          delay: 10
+
+        - name: Create self-signed ClusterIssuer for development
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: cert-manager.io/v1
+              kind: ClusterIssuer
+              metadata:
+                name: selfsigned-issuer
+              spec:
+                selfSigned: {}
+            state: present
+      when: install_cert_manager
+      tags:
+        - cert-manager
+
+    # RBAC設定（データプラットフォーム用）
+    - name: Create RBAC for data platform
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRole
+          metadata:
+            name: data-platform-admin
+          rules:
+            - apiGroups: [""]
+              resources: ["*"]
+              verbs: ["*"]
+            - apiGroups: ["apps", "extensions"]
+              resources: ["*"]
+              verbs: ["*"]
+            - apiGroups: ["batch"]
+              resources: ["*"]
+              verbs: ["*"]
+            - apiGroups: ["networking.k8s.io"]
+              resources: ["*"]
+              verbs: ["*"]
+        state: present
+      tags:
+        - rbac
+
+    # ResourceQuota設定（リソース制限）
+    - name: Create ResourceQuotas for platform namespaces
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: platform-quota
+            namespace: "{{ item.name }}"
+          spec:
+            hard:
+              requests.cpu: "{{ '4' if item.name in ['hadoop', 'spark'] else '2' }}"
+              requests.memory: "{{ '8Gi' if item.name in ['hadoop', 'spark'] else '4Gi' }}"
+              limits.cpu: "{{ '8' if item.name in ['hadoop', 'spark'] else '4' }}"
+              limits.memory: "{{ '16Gi' if item.name in ['hadoop', 'spark'] else '8Gi' }}"
+              persistentvolumeclaims: "10"
+        state: present
+      loop: "{{ platform_namespaces }}"
+      tags:
+        - quotas
+
+  post_tasks:
+    - name: Verify cluster setup completion
+      shell: |
+        echo "=== Cluster Status ==="
+        kubectl get nodes -o wide
+        echo ""
+        echo "=== Storage Classes ==="
+        kubectl get storageclass
+        echo ""
+        echo "=== System Pods ==="
+        kubectl get pods -n kube-system
+        echo ""
+        echo "=== Platform Namespaces ==="
+        kubectl get namespaces -l app.kubernetes.io/part-of=data-platform
+      register: cluster_status
+
+    - name: Display cluster setup summary
+      debug:
+        var: cluster_status.stdout_lines
+
+    - name: Create cluster info file
+      copy:
+        content: |
+          # Kubernetes Cluster Setup Complete
+          
+          ## Cluster Information
+          - Kubernetes Version: {{ kubernetes_version }}
+          - CNI: {{ cni_provider }}
+          - Ingress Controller: {{ ingress_controller if install_ingress_controller else 'Not installed' }}
+          - Storage Provisioner: {{ storage_provisioner if install_storage_provisioner else 'Not installed' }}
+          
+          ## Access Information
+          {% if install_ingress_controller and ingress_controller == "nginx" %}
+          - Ingress HTTP Port: {{ ingress_http_port.stdout }}
+          - Access URL: http://<node-ip>:{{ ingress_http_port.stdout }}
+          {% endif %}
+          
+          ## Platform Namespaces
+          {% for ns in platform_namespaces %}
+          - {{ ns.name }}
+          {% endfor %}
+          
+          ## Next Steps
+          1. Deploy data platform applications using Helm charts
+          2. Configure ingress rules for web UIs
+          3. Set up monitoring and logging
+          
+          Created: {{ ansible_date_time.iso8601 }}
+        dest: /tmp/k8s-cluster-info.md
+        mode: '0644'
+
+    - name: Display setup completion message
+      debug:
+        msg:
+          - "✅ Kubernetes cluster setup completed successfully!"
+          - "📋 Cluster information saved to /tmp/k8s-cluster-info.md"
+          - "🚀 Ready to deploy data platform applications"

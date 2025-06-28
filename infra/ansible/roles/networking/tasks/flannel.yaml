@@ -1,0 +1,30 @@
+---
+- name: Download Flannel manifest
+  get_url:
+    url: "https://github.com/flannel-io/flannel/releases/download/{{ flannel_version }}/kube-flannel.yml"
+    dest: /tmp/kube-flannel.yml
+    mode: '0644'
+
+- name: Modify Flannel network configuration
+  replace:
+    path: /tmp/kube-flannel.yml
+    regexp: '10\.244\.0\.0/16'
+    replace: "{{ flannel_network }}"
+
+- name: Apply Flannel CNI
+  shell: kubectl apply -f /tmp/kube-flannel.yml
+
+- name: Wait for Flannel pods to be ready
+  shell: kubectl get pods -n kube-flannel -l app=flannel -o jsonpath='{.items[*].status.phase}'
+  register: flannel_pods
+  until: flannel_pods.stdout.split()|reject('equalto','Running')|list|length == 0
+  retries: 30
+  delay: 10
+
+- name: Verify Flannel pods are running
+  shell: kubectl get pods -n kube-flannel
+  register: flannel_pods_status
+  
+- name: Display Flannel pod status
+  debug:
+    var: flannel_pods_status.stdout_lines

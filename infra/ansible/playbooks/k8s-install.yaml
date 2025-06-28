@@ -1,0 +1,142 @@
+---
+- name: Install Kubernetes Cluster Infrastructure
+  hosts: all
+  become: yes
+  gather_facts: yes
+  # vars moved to group_vars/all/main.yaml for centralized management
+
+  pre_tasks:
+    - name: Verify OS compatibility
+      assert:
+        that:
+          - ansible_os_family == "Debian"
+        fail_msg: "This playbook only supports Debian-based systems"
+
+    - name: Check minimum system requirements
+      assert:
+        that:
+          - ansible_memtotal_mb >= 2048
+          - ansible_processor_vcpus >= 2
+        fail_msg: "Minimum requirements: 2GB RAM, 2 CPU cores"
+
+    - name: Display cluster information
+      debug:
+        msg:
+          - "Kubernetes Version: {{ kubernetes_version }}"
+          - "Pod Subnet: {{ kubernetes_pod_subnet }}"
+          - "Service Subnet: {{ kubernetes_service_subnet }}"
+          - "CNI Provider: {{ cni_provider }}"
+          - "Cluster Name: {{ kubernetes_cluster_name }}"
+
+  roles:
+    - role: container-runtime
+      tags: 
+        - container-runtime
+        - docker
+
+    - role: kubernetes
+      tags:
+        - kubernetes
+        - k8s
+
+  post_tasks:
+    - name: Display installation summary
+      debug:
+        msg:
+          - "Container Runtime: Docker installed and configured"
+          - "Kubernetes Components: kubelet, kubeadm, kubectl installed"
+          - "Ready for cluster initialization"
+      when: inventory_hostname in groups['k8s_master']
+
+- name: Initialize Kubernetes Master Node
+  hosts: k8s_master
+  become: yes
+  gather_facts: yes
+  vars:
+    kubernetes_master: true
+
+  tasks:
+    - name: Initialize Kubernetes cluster
+      include_role:
+        name: kubernetes
+        tasks_from: master
+      tags:
+        - master
+        - init
+
+    - name: Setup kubectl for master
+      include_role:
+        name: kubernetes  
+        tasks_from: kubectl
+      tags:
+        - kubectl
+
+    - name: Display master node status
+      shell: kubectl get nodes
+      register: node_status
+      
+    - name: Show cluster status
+      debug:
+        var: node_status.stdout_lines
+
+- name: Join Worker Nodes to Cluster
+  hosts: k8s_worker
+  become: yes
+  gather_facts: yes
+  vars:
+    kubernetes_worker: true
+  serial: 1
+
+  tasks:
+    - name: Join worker nodes to cluster
+      include_role:
+        name: kubernetes
+        tasks_from: worker
+      tags:
+        - worker
+        - join
+
+    - name: Setup kubectl for workers
+      include_role:
+        name: kubernetes
+        tasks_from: kubectl
+      tags:
+        - kubectl
+
+- name: Configure Cluster Networking
+  hosts: k8s_master
+  become: yes
+  gather_facts: yes
+  vars:
+    kubernetes_master: true
+
+  tasks:
+    - name: Install CNI networking
+      include_role:
+        name: networking
+      tags:
+        - networking
+        - cni
+
+    - name: Wait for all nodes to be ready
+      shell: kubectl get nodes --no-headers
+      register: all_nodes
+      until: all_nodes.stdout_lines | map('regex_search', 'NotReady') | select('string') | list | length == 0
+      retries: 30
+      delay: 10
+
+    - name: Display final cluster status
+      shell: kubectl get nodes -o wide
+      register: final_status
+
+    - name: Show final cluster information
+      debug:
+        var: final_status.stdout_lines
+
+    - name: Verify system pods are running
+      shell: kubectl get pods -n kube-system
+      register: system_pods
+
+    - name: Display system pods status
+      debug:
+        var: system_pods.stdout_lines
