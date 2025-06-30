@@ -1,5 +1,0 @@
-- name: Cleanup Calico Installation 
-  hosts: k8s_master 
-  become: yes 
-  tasks: 
-    - include_tasks: roles/networking/tasks/cleanup-calico.yaml
