@@ -1,0 +1,101 @@
+# Local Storage configuration for Hadoop data locality
+
+---
+# StorageClass for local storage
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: hadoop-local-storage
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+# PersistentVolume for DataNode 1
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hadoop-data-pv-1
+  labels:
+    type: local
+    node: worker-1
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hadoop-local-storage
+  local:
+    path: /mnt/hadoop/data1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: workload
+          operator: In
+          values: ["hadoop"]
+        - key: kubernetes.io/hostname
+          operator: In
+          values: ["data-platform-worker"]
+
+---
+# PersistentVolume for DataNode 2
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hadoop-data-pv-2
+  labels:
+    type: local
+    node: worker-2
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hadoop-local-storage
+  local:
+    path: /mnt/hadoop/data2
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: workload
+          operator: In
+          values: ["hadoop"]
+        - key: kubernetes.io/hostname
+          operator: In
+          values: ["data-platform-worker2"]
+
+---
+# PersistentVolume for DataNode 3
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hadoop-data-pv-3
+  labels:
+    type: local
+    node: worker-3
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hadoop-local-storage
+  local:
+    path: /mnt/hadoop/data3
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: workload
+          operator: In
+          values: ["hadoop"]
+        - key: kubernetes.io/hostname
+          operator: In
+          values: ["data-platform-worker3"]

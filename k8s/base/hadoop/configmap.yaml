@@ -1,0 +1,110 @@
+# Hadoop Configuration for Kubernetes StatefulSet
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hadoop-config
+  namespace: data-platform
+data:
+  core-site.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+      <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://hadoop-namenode:9000</value>
+      </property>
+      <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/hadoop/tmp</value>
+      </property>
+    </configuration>
+  
+  hdfs-site.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+      <!-- NameNode設定 -->
+      <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>/hadoop/namenode</value>
+      </property>
+      
+      <!-- DataNode設定 -->
+      <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>/hadoop/data</value>
+      </property>
+      
+      <!-- 重要：DataNodeのホスト名を明示的に設定 -->
+      <property>
+        <name>dfs.datanode.hostname</name>
+        <value>${DATANODE_FQDN}</value>
+      </property>
+      
+      <!-- DataNodeのアドレス設定 -->
+      <property>
+        <name>dfs.datanode.address</name>
+        <value>0.0.0.0:9866</value>
+      </property>
+      
+      <property>
+        <name>dfs.datanode.http.address</name>
+        <value>0.0.0.0:9864</value>
+      </property>
+      
+      <property>
+        <name>dfs.datanode.ipc.address</name>
+        <value>0.0.0.0:9867</value>
+      </property>
+      
+      <!-- レプリケーション設定 -->
+      <property>
+        <name>dfs.replication</name>
+        <value>2</value>
+      </property>
+      
+      <!-- ブロックサイズ -->
+      <property>
+        <name>dfs.blocksize</name>
+        <value>134217728</value> <!-- 128MB -->
+      </property>
+      
+      <!-- DataNode失敗処理 -->
+      <property>
+        <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+        <value>false</value>
+      </property>
+      
+      <!-- ハートビート間隔 -->
+      <property>
+        <name>dfs.heartbeat.interval</name>
+        <value>3</value>
+      </property>
+      
+      <property>
+        <name>dfs.namenode.heartbeat.recheck-interval</name>
+        <value>300000</value>
+      </property>
+    </configuration>
+  
+  yarn-site.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+      <property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>hadoop-namenode</value>
+      </property>
+      
+      <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+      </property>
+      
+      <property>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+        <value>3072</value>
+      </property>
+      
+      <property>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+        <value>2</value>
+      </property>
+    </configuration>

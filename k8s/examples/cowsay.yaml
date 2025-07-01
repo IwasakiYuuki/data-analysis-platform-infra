@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cowsay
+spec:
+  containers:
+  - name: cowsay
+    image: grycap/cowsay:latest
+    command:
+      - /usr/games/cowsay
+      - "Hello, Kubernetes!"
+

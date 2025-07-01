@@ -1,0 +1,129 @@
+# StatefulSet for Hadoop DataNode with data locality
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hadoop-datanode
+  namespace: data-platform
+spec:
+  serviceName: hadoop-datanode
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hadoop-datanode
+  template:
+    metadata:
+      labels:
+        app: hadoop-datanode
+    spec:
+      # ノード固定でデータローカリティ確保
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: workload
+                operator: In
+                values: ["hadoop"]
+        # 同じノードに複数DataNodeを配置しない
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: hadoop-datanode
+            topologyKey: kubernetes.io/hostname
+      
+      containers:
+      - name: datanode
+        image: hadoop:3.4.0
+        ports:
+        - containerPort: 9864
+          name: http
+        - containerPort: 9866
+          name: data-transfer
+        - containerPort: 9867
+          name: ipc
+        
+        env:
+        - name: CLUSTER_NAME
+          value: "hadoop-cluster"
+        - name: HADOOP_CONF_DIR
+          value: "/opt/hadoop/etc/hadoop"
+        - name: DATANODE_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        
+        # 安定したネットワークアイデンティティ
+        - name: DATANODE_FQDN
+          value: "$(DATANODE_HOSTNAME).hadoop-datanode.data-platform.svc.cluster.local"
+        
+        volumeMounts:
+        - name: hadoop-data
+          mountPath: /hadoop/data
+        - name: hadoop-logs
+          mountPath: /opt/hadoop/logs
+        - name: hadoop-config
+          mountPath: /opt/hadoop/etc/hadoop
+        
+        # DataNodeの健全性チェック
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9864
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9864
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+      
+      volumes:
+      - name: hadoop-config
+        configMap:
+          name: hadoop-config
+      - name: hadoop-logs
+        emptyDir: {}
+  
+  # StatefulSetの核心：各Podが専用のPVCを持つ
+  volumeClaimTemplates:
+  - metadata:
+      name: hadoop-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: hadoop-local-storage
+      resources:
+        requests:
+          storage: 100Gi
+
+---
+# Headless Service for StatefulSet
+apiVersion: v1
+kind: Service
+metadata:
+  name: hadoop-datanode
+  namespace: data-platform
+spec:
+  clusterIP: None  # Headless service
+  selector:
+    app: hadoop-datanode
+  ports:
+  - name: http
+    port: 9864
+    targetPort: 9864
+  - name: data-transfer
+    port: 9866
+    targetPort: 9866
+  - name: ipc
+    port: 9867
+    targetPort: 9867

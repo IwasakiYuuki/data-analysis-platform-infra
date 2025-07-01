@@ -27,20 +27,17 @@
 ## Phase 2: Kubernetesクラスター構築（インフラ層） ⚙️
 
 ### 2.1 Ansible Playbook作成
-- [ ] `infrastructure/ansible/roles/kubernetes/` 作成
-  - [ ] kubeletインストール
-  - [ ] kubeadmインストール
-  - [ ] kubectl設定
-- [ ] `infrastructure/ansible/roles/container-runtime/` 作成
-  - [ ] containerdインストール・設定
-- [ ] `infrastructure/ansible/roles/networking/` 作成
-  - [ ] CNI（Calico/Flannel）設定
-- [ ] `infrastructure/ansible/roles/storage/` 作成
-  - [ ] StorageClass設定
-  - [ ] PersistentVolume設定
+- [x] `infrastructure/ansible/roles/container-runtime/` 作成
+  - [x] Dockerインストール
+- [x] `infrastructure/ansible/roles/kubernetes/` 作成
+  - [x] kubeletインストール
+  - [x] kubeadmインストール
+  - [x] kubectl設定
+- [x] `infrastructure/ansible/roles/networking/` 作成
+  - [x] CNI（Calico/Flannel）設定
 
 ### 2.2 クラスター初期化
-- [ ] `infrastructure/ansible/playbooks/k8s-install.yaml` 作成
+- [x] `infrastructure/ansible/playbooks/k8s-install.yaml` 作成
 - [ ] `infrastructure/ansible/playbooks/k8s-setup.yaml` 作成
 - [ ] インベントリファイルの更新（K8sノード用）
 
